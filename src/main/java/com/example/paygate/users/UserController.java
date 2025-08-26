@@ -1,25 +1,27 @@
 package com.example.paygate.users;
 
-
 import com.example.paygate.users.dtos.RegisterUserRequest;
+import com.example.paygate.users.dtos.UserDto;
+import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@AllArgsConstructor
 @RequestMapping(value = "/users")
 public class UserController {
+
+    private final UsersService usersService;
 
     @GetMapping
     public String getUsers() {
         return "These are the users we have";
     }
 
-
     @PostMapping
-    public String createUser(
-           @RequestBody RegisterUserRequest request
+    public UserDto createUser(
+           @Valid @RequestBody RegisterUserRequest request
     ) {
-        System.out.println("This is the register user request");
-        System.out.println(request);
-        return  "User Created Successfully";
+        return usersService.createUser(request);
     }
 }
