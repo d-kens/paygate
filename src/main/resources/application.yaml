@@ -1,0 +1,13 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: paygate
+  datasource:
+    url:  jdbc:mysql://localhost:3306/pulse?createDatabaseIfNotExist=true
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: D!ck3n5@123
+  jpa:
+    show-sql: true
