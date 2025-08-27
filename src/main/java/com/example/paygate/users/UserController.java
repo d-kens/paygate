@@ -3,10 +3,10 @@ package com.example.paygate.users;
 import com.example.paygate.exceptions.EmailAlreadyExistException;
 import com.example.paygate.exceptions.dtos.ErrorDto;
 import com.example.paygate.users.dtos.RegisterUserRequest;
+import com.example.paygate.users.dtos.UpdateUserRequest;
 import com.example.paygate.users.dtos.UserDto;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -17,7 +17,6 @@ import java.util.List;
 @AllArgsConstructor
 @RequestMapping(value = "/users")
 public class UserController {
-
     private final UsersService usersService;
 
     @GetMapping
@@ -38,6 +37,21 @@ public class UserController {
         var userDto = usersService.createUser(request);
         var uri = uriComponentsBuilder.path("/users/{id}").buildAndExpand(userDto.getId()).toUri();
         return ResponseEntity.created(uri).body(userDto);
+    }
+
+    @PutMapping("/{id}")
+    public UserDto updateUser(
+            @PathVariable Long id,
+            @RequestBody UpdateUserRequest request
+    ) {
+        return usersService.updateUser(id, request);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+        usersService.deleteUser(id);
+
+        return ResponseEntity.noContent().build();
     }
 
     @ExceptionHandler(EmailAlreadyExistException.class)

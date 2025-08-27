@@ -3,6 +3,7 @@ package com.example.paygate.users;
 import com.example.paygate.exceptions.EmailAlreadyExistException;
 import com.example.paygate.exceptions.NotFoundException;
 import com.example.paygate.users.dtos.RegisterUserRequest;
+import com.example.paygate.users.dtos.UpdateUserRequest;
 import com.example.paygate.users.dtos.UserDto;
 import com.example.paygate.users.mappers.UserMapper;
 import lombok.AllArgsConstructor;
@@ -40,5 +41,27 @@ public class UsersService {
         usersRepository.save(user);
 
         return userMapper.toDto(user);
+    }
+
+    public UserDto updateUser(Long id, UpdateUserRequest request) {
+        var user = usersRepository.findById(id).orElse(null);
+
+        if (user == null) throw new NotFoundException("User with ID " + id + " not found");
+
+        userMapper.update(request, user);
+        usersRepository.save(user);
+
+        return userMapper.toDto(user);
+    }
+
+
+    public void deleteUser(Long id) {
+        var user = usersRepository.findById(id).orElse(null);
+
+        if (user == null) {
+            throw new NotFoundException("User with ID " + id + " not found");
+        }
+
+        usersRepository.delete(user);
     }
 }
