@@ -1,0 +1,2 @@
+ALTER TABLE users
+CHANGE COLUMN password_hash password VARCHAR(255) NOT NULL;

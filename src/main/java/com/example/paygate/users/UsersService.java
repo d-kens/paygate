@@ -1,20 +1,31 @@
 package com.example.paygate.users;
 
+import com.example.paygate.exceptions.EmailAlreadyExistException;
 import com.example.paygate.users.dtos.RegisterUserRequest;
 import com.example.paygate.users.dtos.UserDto;
+import com.example.paygate.users.mappers.UserMapper;
+import lombok.AllArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
+@AllArgsConstructor
 public class UsersService {
 
+    private final UserMapper userMapper;
+    private final UsersRepository usersRepository;
+    private final PasswordEncoder passwordEncoder;
+
     public UserDto createUser(RegisterUserRequest request) {
-        // check if user already exist and return a bad request
-        // if user does not exist map the request to user entity
-        // set user password
-        // set user role
-        // save the user
-        // convert user to UserDto
-        // return
-        return new UserDto(10L, "Dummy", "dummy@gmail.com");
+        if (usersRepository.existsByEmail(request.getEmail())) {
+            throw new EmailAlreadyExistException();
+        }
+
+        var user = userMapper.toEntity(request);
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setRole(Role.USER);
+        usersRepository.save(user);
+
+        return userMapper.toDto(user);
     }
 }
