@@ -6,9 +6,12 @@ import com.example.paygate.users.dtos.RegisterUserRequest;
 import com.example.paygate.users.dtos.UserDto;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import java.util.List;
 
 @RestController
 @AllArgsConstructor
@@ -18,8 +21,13 @@ public class UserController {
     private final UsersService usersService;
 
     @GetMapping
-    public String getUsers() {
-        return "These are the users we have";
+    public List<UserDto> findAll() {
+        return usersService.findAll();
+    }
+
+    @GetMapping("/{id}")
+    public UserDto findBYId(@PathVariable Long id) {
+        return usersService.findById(id);
     }
 
     @PostMapping
