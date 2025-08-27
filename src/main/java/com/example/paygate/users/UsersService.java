@@ -2,6 +2,8 @@ package com.example.paygate.users;
 
 import com.example.paygate.exceptions.EmailAlreadyExistException;
 import com.example.paygate.exceptions.NotFoundException;
+import com.example.paygate.exceptions.PasswordMismatchException;
+import com.example.paygate.users.dtos.ChangePasswordRequest;
 import com.example.paygate.users.dtos.RegisterUserRequest;
 import com.example.paygate.users.dtos.UpdateUserRequest;
 import com.example.paygate.users.dtos.UserDto;
@@ -58,10 +60,21 @@ public class UsersService {
     public void deleteUser(Long id) {
         var user = usersRepository.findById(id).orElse(null);
 
-        if (user == null) {
-            throw new NotFoundException("User with ID " + id + " not found");
-        }
+        if (user == null) throw new NotFoundException("User with ID " + id + " not found");
+
 
         usersRepository.delete(user);
+    }
+
+    public void changePassword(Long id, ChangePasswordRequest request) {
+        var user = usersRepository.findById(id).orElse(null);
+
+        if (user == null) throw new NotFoundException("User with ID " + id + " not found");
+
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword()))
+            throw new PasswordMismatchException();
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        usersRepository.save(user);
     }
 }

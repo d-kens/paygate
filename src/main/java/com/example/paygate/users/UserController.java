@@ -1,7 +1,9 @@
 package com.example.paygate.users;
 
 import com.example.paygate.exceptions.EmailAlreadyExistException;
+import com.example.paygate.exceptions.PasswordMismatchException;
 import com.example.paygate.exceptions.dtos.ErrorDto;
+import com.example.paygate.users.dtos.ChangePasswordRequest;
 import com.example.paygate.users.dtos.RegisterUserRequest;
 import com.example.paygate.users.dtos.UpdateUserRequest;
 import com.example.paygate.users.dtos.UserDto;
@@ -54,10 +56,26 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/{id}/change-password")
+    public void changePassword(
+            @PathVariable Long id,
+            @Valid @RequestBody ChangePasswordRequest request
+    ) {
+        System.out.println(id);
+        usersService.changePassword(id, request);
+    }
+
     @ExceptionHandler(EmailAlreadyExistException.class)
     public ResponseEntity<ErrorDto> handleEmailAlreadyExist() {
         return ResponseEntity.badRequest().body(
                 new ErrorDto("Email already exist")
+        );
+    }
+
+    @ExceptionHandler(PasswordMismatchException.class)
+    public ResponseEntity<ErrorDto> handlePasswordMismatchException() {
+        return ResponseEntity.badRequest().body(
+                new ErrorDto("Old password does not match")
         );
     }
 }
