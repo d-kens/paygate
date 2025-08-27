@@ -3,6 +3,7 @@ package com.example.paygate.users;
 import com.example.paygate.exceptions.EmailAlreadyExistException;
 import com.example.paygate.exceptions.dtos.ErrorDto;
 import com.example.paygate.users.dtos.RegisterUserRequest;
+import com.example.paygate.users.dtos.UserDto;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -22,20 +23,19 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createUser(
+    public ResponseEntity<UserDto> createUser(
            @Valid @RequestBody RegisterUserRequest request,
            UriComponentsBuilder uriComponentsBuilder
     ) {
-        try {
-            var userDto = usersService.createUser(request);
+        var userDto = usersService.createUser(request);
+        var uri = uriComponentsBuilder.path("/users/{id}").buildAndExpand(userDto.getId()).toUri();
+        return ResponseEntity.created(uri).body(userDto);
+    }
 
-            var uri = uriComponentsBuilder.path("/users/{id}").buildAndExpand(userDto.getId()).toUri();
-
-            return ResponseEntity.created(uri).body(userDto);
-        } catch (EmailAlreadyExistException ex) {
-            return ResponseEntity.badRequest().body(
-                    new ErrorDto("Email already exist")
-            );
-        }
+    @ExceptionHandler(EmailAlreadyExistException.class)
+    public ResponseEntity<ErrorDto> handleEmailAlreadyExist() {
+        return ResponseEntity.badRequest().body(
+                new ErrorDto("Email already exist")
+        );
     }
 }
