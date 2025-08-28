@@ -19,55 +19,55 @@ import java.util.List;
 public class UsersService {
 
     private final UserMapper userMapper;
-    private final UsersRepository usersRepository;
+    private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
     public List<UserDto> findAll() {
-        return usersRepository.findAll().stream().map(userMapper::toDto).toList();
+        return userRepository.findAll().stream().map(userMapper::toDto).toList();
     }
 
     public UserDto findById(Long id) {
-        var user = usersRepository.findById(id).orElse(null);
+        var user = userRepository.findById(id).orElse(null);
         if (user == null) throw new NotFoundException("User with ID: " + id + " not found");
         return userMapper.toDto(user);
     }
 
     public UserDto createUser(RegisterUserRequest request) {
-        if (usersRepository.existsByEmail(request.getEmail())) {
+        if (userRepository.existsByEmail(request.getEmail())) {
             throw new EmailAlreadyExistException();
         }
 
         var user = userMapper.toEntity(request);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setRole(Role.USER);
-        usersRepository.save(user);
+        userRepository.save(user);
 
         return userMapper.toDto(user);
     }
 
     public UserDto updateUser(Long id, UpdateUserRequest request) {
-        var user = usersRepository.findById(id).orElse(null);
+        var user = userRepository.findById(id).orElse(null);
 
         if (user == null) throw new NotFoundException("User with ID " + id + " not found");
 
         userMapper.update(request, user);
-        usersRepository.save(user);
+        userRepository.save(user);
 
         return userMapper.toDto(user);
     }
 
 
     public void deleteUser(Long id) {
-        var user = usersRepository.findById(id).orElse(null);
+        var user = userRepository.findById(id).orElse(null);
 
         if (user == null) throw new NotFoundException("User with ID " + id + " not found");
 
 
-        usersRepository.delete(user);
+        userRepository.delete(user);
     }
 
     public void changePassword(Long id, ChangePasswordRequest request) {
-        var user = usersRepository.findById(id).orElse(null);
+        var user = userRepository.findById(id).orElse(null);
 
         if (user == null) throw new NotFoundException("User with ID " + id + " not found");
 
@@ -75,6 +75,6 @@ public class UsersService {
             throw new PasswordMismatchException();
 
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
-        usersRepository.save(user);
+        userRepository.save(user);
     }
 }
