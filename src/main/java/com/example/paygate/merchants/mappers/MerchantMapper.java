@@ -12,7 +12,7 @@ import org.mapstruct.MappingTarget;
 public interface MerchantMapper {
     Merchant toEntity(CreateMerchantRequest request);
 
-    @Mapping(source = "user.id", target = "user_id")
+    @Mapping(source = "user.id", target = "userId")
     MerchantDto toDto(Merchant merchant);
 
     void update(UpdateMerchantRequest request, @MappingTarget Merchant merchant);

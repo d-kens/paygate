@@ -10,7 +10,8 @@ public class MerchantDto {
     private Long id;
     private String name;
     private String apiKey;
-    private Long user_id;
+    private String secretKey;
+    private Long userId;
     private String webhookUrl;
     private Boolean webhookActive;
 }
