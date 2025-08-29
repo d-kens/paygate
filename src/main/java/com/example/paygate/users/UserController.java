@@ -41,6 +41,15 @@ public class UserController {
         return ResponseEntity.created(uri).body(userDto);
     }
 
+    @PostMapping("/{id}/change-password")
+    public void changePassword(
+            @PathVariable Long id,
+            @Valid @RequestBody ChangePasswordRequest request
+    ) {
+        System.out.println(id);
+        usersService.changePassword(id, request);
+    }
+
     @PutMapping("/{id}")
     public UserDto updateUser(
             @PathVariable Long id,
@@ -54,15 +63,6 @@ public class UserController {
         usersService.deleteUser(id);
 
         return ResponseEntity.noContent().build();
-    }
-
-    @PostMapping("/{id}/change-password")
-    public void changePassword(
-            @PathVariable Long id,
-            @Valid @RequestBody ChangePasswordRequest request
-    ) {
-        System.out.println(id);
-        usersService.changePassword(id, request);
     }
 
     @ExceptionHandler(EmailAlreadyExistException.class)

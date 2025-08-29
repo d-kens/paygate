@@ -1,16 +1,10 @@
 package com.example.paygate.merchants.dtos;
 
-
-import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
-@AllArgsConstructor
-public class MerchantDto {
-    private Long id;
+public class UpdateMerchantRequest {
     private String name;
-    private String apiKey;
-    private Long user_id;
     private String webhookUrl;
     private Boolean webhookActive;
 }

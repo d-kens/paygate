@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
-
+import java.util.UUID;
 
 
 @Entity
@@ -31,19 +31,38 @@ public class Merchant {
     @JoinColumn(name = "user_id")
     private User user;
 
+    @Column(name = "webhook_url")
+    private String webhookUrl;
+
+    @Column(name = "secret_key")
+    private String secretKey;
+
+    @Column(name = "webhook_active")
+    private Boolean webhookActive = true;
+
     @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at", insertable = false, updatable = false)
     private LocalDateTime updatedAt;
 
+    public void generateApiKey() {
+        this.apiKey = "pl_" + UUID.randomUUID().toString().replace("-", "");
+    }
+
+    public void generateSecretKey() {
+        this.secretKey = UUID.randomUUID().toString();
+    }
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "(" +
-                "id = " + id + ", " +
-                "name = " + name + ", " +
-                "apiKey = " + apiKey + ", " +
-                "userId = " + user.getId() + ")";
+        return "Merchant(" +
+                "id=" + id +
+                ", name=" + name +
+                ", apiKey=" + apiKey +
+                ", userId=" + (user != null ? user.getId() : null) +
+                ", webhookUrl=" + webhookUrl +
+                ", webhookActive=" + webhookActive +
+                ")";
     }
 }

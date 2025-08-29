@@ -1,0 +1,4 @@
+ALTER TABLE merchants
+ADD COLUMN webhook_url VARCHAR(500),
+ADD COLUMN webhook_secret VARCHAR(255),
+ADD COLUMN webhook_active BOOLEAN DEFAULT TRUE;

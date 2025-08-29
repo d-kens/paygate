@@ -1,0 +1,11 @@
+Process Flow (simplified):
+
+Merchant calls API to initiate payment → record in payments (status = PENDING).
+
+MPESA STK push → customer confirms → callback hits payment_callbacks.
+
+Update payments.status → update merchant_balances.
+
+Periodically, settlements run to reconcile balances and pay merchants.
+
+Webhooks notify merchant systems via webhook_endpoints.
