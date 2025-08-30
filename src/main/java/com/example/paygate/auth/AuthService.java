@@ -34,7 +34,7 @@ public class AuthService {
     public AccessToken refreshAccessToken(String refreshToken) {
         var jwt = jwtService.parseToken(refreshToken);
 
-        if (jwt == null)
+        if (jwt == null || jwt.isExpired())
             return null;
 
         var user = userRepository.findById(jwt.getUserId()).orElse(null);
