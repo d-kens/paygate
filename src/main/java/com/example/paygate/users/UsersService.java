@@ -26,9 +26,9 @@ public class UsersService {
         return userRepository.findAll().stream().map(userMapper::toDto).toList();
     }
 
-    public UserDto findById(Long id) {
-        var user = userRepository.findById(id).orElse(null);
-        if (user == null) throw new NotFoundException("User with ID: " + id + " not found");
+    public UserDto findById(Long userid) {
+        var user = userRepository.findById(userid).orElse(null);
+        if (user == null) throw new NotFoundException("User with ID: " + userid + " not found");
         return userMapper.toDto(user);
     }
 
@@ -45,10 +45,10 @@ public class UsersService {
         return userMapper.toDto(user);
     }
 
-    public UserDto updateUser(Long id, UpdateUserRequest request) {
-        var user = userRepository.findById(id).orElse(null);
+    public UserDto updateUser(Long userid, UpdateUserRequest request) {
+        var user = userRepository.findById(userid).orElse(null);
 
-        if (user == null) throw new NotFoundException("User with ID " + id + " not found");
+        if (user == null) throw new NotFoundException("User with ID " + userid + " not found");
 
         userMapper.update(request, user);
         userRepository.save(user);
@@ -57,19 +57,19 @@ public class UsersService {
     }
 
 
-    public void deleteUser(Long id) {
-        var user = userRepository.findById(id).orElse(null);
+    public void deleteUser(Long userid) {
+        var user = userRepository.findById(userid).orElse(null);
 
-        if (user == null) throw new NotFoundException("User with ID " + id + " not found");
+        if (user == null) throw new NotFoundException("User with ID " + userid + " not found");
 
 
         userRepository.delete(user);
     }
 
-    public void changePassword(Long id, ChangePasswordRequest request) {
-        var user = userRepository.findById(id).orElse(null);
+    public void changePassword(Long userid, ChangePasswordRequest request) {
+        var user = userRepository.findById(userid).orElse(null);
 
-        if (user == null) throw new NotFoundException("User with ID " + id + " not found");
+        if (user == null) throw new NotFoundException("User with ID " + userid + " not found");
 
         if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword()))
             throw new PasswordMismatchException();

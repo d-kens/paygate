@@ -24,9 +24,9 @@ public class MerchantService {
         return merchantRepository.findAll().stream().map(merchantMapper::toDto).toList();
     }
 
-    public MerchantDto findOne(Long id) {
-        var merchant = merchantRepository.findById(id).orElseThrow(
-                () -> new NotFoundException("Merchant with ID " + id + " not found")
+    public MerchantDto findOne(Long merchantId) {
+        var merchant = merchantRepository.findById(merchantId).orElseThrow(
+                () -> new NotFoundException("Merchant with ID " + merchantId + " not found")
         );
 
         return merchantMapper.toDto(merchant);
@@ -53,9 +53,9 @@ public class MerchantService {
         return merchantMapper.toDto(merchant);
     }
 
-    public MerchantDto updateMerchant(Long id, UpdateMerchantRequest request) {
-        var merchant = merchantRepository.findById(id).orElseThrow(
-                () -> new NotFoundException("Merchant with ID " + id + " not found")
+    public MerchantDto updateMerchant(Long merchantId, UpdateMerchantRequest request) {
+        var merchant = merchantRepository.findById(merchantId).orElseThrow(
+                () -> new NotFoundException("Merchant with ID " + merchantId + " not found")
         );
 
         merchantMapper.update(request, merchant);
@@ -64,9 +64,9 @@ public class MerchantService {
         return merchantMapper.toDto(merchant);
     }
 
-    public void deleteMerchant(Long id) {
-        var merchant = merchantRepository.findById(id).orElseThrow(
-                () -> new NotFoundException("Merchant with ID " + id + " not found")
+    public void deleteMerchant(Long merchantId) {
+        var merchant = merchantRepository.findById(merchantId).orElseThrow(
+                () -> new NotFoundException("Merchant with ID " + merchantId + " not found")
         );
         merchantRepository.delete(merchant);
     }

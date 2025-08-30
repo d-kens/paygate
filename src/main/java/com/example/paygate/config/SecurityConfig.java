@@ -3,6 +3,7 @@ package com.example.paygate.config;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -48,10 +49,9 @@ public class SecurityConfig {
                         c.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests( c -> c
-                        .requestMatchers("/users/**").permitAll()
-                        .requestMatchers("/merchants/**").permitAll()
                         .requestMatchers("/auth/login").permitAll()
                         .requestMatchers("/auth/refresh").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/users").permitAll()
                         .anyRequest().authenticated()
                 ).exceptionHandling( c -> {
                     c.authenticationEntryPoint(

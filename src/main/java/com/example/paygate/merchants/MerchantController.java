@@ -26,9 +26,9 @@ public class MerchantController {
         return merchantService.findAll();
     }
 
-    @GetMapping("/{id}")
-    public MerchantDto findOne(@PathVariable Long id) {
-        return merchantService.findOne(id);
+    @GetMapping("/{merchantId}")
+    public MerchantDto findOne(@PathVariable Long merchantId) {
+        return merchantService.findOne(merchantId);
     }
 
     @PostMapping
@@ -37,21 +37,21 @@ public class MerchantController {
             UriComponentsBuilder uriComponentsBuilder
     ) {
         var merchantDto = merchantService.createMerchant(request);
-        var uri = uriComponentsBuilder.path("/merchants/{id}").buildAndExpand(merchantDto.getId()).toUri();
+        var uri = uriComponentsBuilder.path("/merchants/{merchantId}").buildAndExpand(merchantDto.getId()).toUri();
         return ResponseEntity.created(uri).body(merchantDto);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{merchantId}")
     public MerchantDto updateMerchant(
-            @PathVariable Long id,
+            @PathVariable Long merchantId,
             @RequestBody UpdateMerchantRequest request
     ) {
-        return merchantService.updateMerchant(id, request);
+        return merchantService.updateMerchant(merchantId, request);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        merchantService.deleteMerchant(id);
+    @DeleteMapping("/{merchantId}")
+    public ResponseEntity<Void> delete(@PathVariable Long merchantId) {
+        merchantService.deleteMerchant(merchantId);
         return ResponseEntity.noContent().build();
     }
 

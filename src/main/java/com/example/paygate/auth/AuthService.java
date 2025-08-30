@@ -1,5 +1,6 @@
 package com.example.paygate.auth;
 
+import com.example.paygate.auth.dtos.AccessToken;
 import com.example.paygate.auth.dtos.AuthRequest;
 import com.example.paygate.auth.dtos.AuthResponse;
 import com.example.paygate.users.UserRepository;
@@ -28,6 +29,20 @@ public class AuthService {
         var refreshToken = jwtService.generateRefreshToken(user);
 
         return new AuthResponse(accessToken.toString(), refreshToken.toString());
+    }
+
+    public AccessToken refreshAccessToken(String refreshToken) {
+        var jwt = jwtService.parseToken(refreshToken);
+
+        if (jwt == null)
+            return null;
+
+        var user = userRepository.findById(jwt.getUserId()).orElse(null);
+
+        if (user == null)
+            return null;
+
+        return new AccessToken(jwtService.generateAccessToken(user).toString());
     }
 }
 

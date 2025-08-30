@@ -15,6 +15,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 @AllArgsConstructor
 @RequestMapping("/auth")
 public class AuthController {
+    private JwtService jwtService;
     private final AuthService authService;
 
     @PostMapping("/login")
@@ -35,6 +36,18 @@ public class AuthController {
         return ResponseEntity.ok().body(
                 new AccessToken(authResponse.getAccessToken())
         );
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<AccessToken> refreshToken(
+            @CookieValue(value = "refreshToken") String refreshToken
+    ) {
+        var accessToken = authService.refreshAccessToken(refreshToken);
+
+        if (accessToken == null)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+        return ResponseEntity.ok(accessToken);
     }
 
     @ExceptionHandler(BadCredentialsException.class)

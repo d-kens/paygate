@@ -3,6 +3,8 @@ package com.example.paygate.auth;
 
 import com.example.paygate.config.JwtConfig;
 import com.example.paygate.users.User;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,6 +16,14 @@ import java.util.Date;
 public class JwtService {
     private final JwtConfig jwtConfig;
 
+    private Claims getClaims(String token) {
+        return Jwts.parser()
+                .verifyWith(jwtConfig.getSecretKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+    }
+
     private Jwt generateToken(User user, long tokenExpiration) {
         var claims = Jwts.claims()
                 .subject(user.getId().toString())
@@ -24,6 +34,15 @@ public class JwtService {
                 .expiration(new Date(System.currentTimeMillis() + 1000 * tokenExpiration))
                 .build();
         return new Jwt(claims, jwtConfig.getSecretKey());
+    }
+
+    public Jwt parseToken(String token) {
+        try {
+            var claims = getClaims(token);
+            return new Jwt(claims, jwtConfig.getSecretKey());
+        } catch (JwtException exception) {
+            return null;
+        }
     }
 
     public Jwt generateAccessToken(User user) {

@@ -26,9 +26,9 @@ public class UserController {
         return usersService.findAll();
     }
 
-    @GetMapping("/{id}")
-    public UserDto findBYId(@PathVariable Long id) {
-        return usersService.findById(id);
+    @GetMapping("/{userId}")
+    public UserDto findBYId(@PathVariable Long userId) {
+        return usersService.findById(userId);
     }
 
     @PostMapping
@@ -37,30 +37,30 @@ public class UserController {
            UriComponentsBuilder uriComponentsBuilder
     ) {
         var userDto = usersService.createUser(request);
-        var uri = uriComponentsBuilder.path("/users/{id}").buildAndExpand(userDto.getId()).toUri();
+        var uri = uriComponentsBuilder.path("/users/{userId}").buildAndExpand(userDto.getId()).toUri();
         return ResponseEntity.created(uri).body(userDto);
     }
 
-    @PostMapping("/{id}/change-password")
+    @PostMapping("/{userId}/change-password")
     public void changePassword(
-            @PathVariable Long id,
+            @PathVariable Long userId,
             @Valid @RequestBody ChangePasswordRequest request
     ) {
-        System.out.println(id);
-        usersService.changePassword(id, request);
+        System.out.println(userId);
+        usersService.changePassword(userId, request);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{userId}")
     public UserDto updateUser(
-            @PathVariable Long id,
+            @PathVariable Long userId,
             @RequestBody UpdateUserRequest request
     ) {
-        return usersService.updateUser(id, request);
+        return usersService.updateUser(userId, request);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-        usersService.deleteUser(id);
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long userid) {
+        usersService.deleteUser(userid);
 
         return ResponseEntity.noContent().build();
     }
