@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 @Service
 @AllArgsConstructor
 public class AuthService {
+    private JwtService jwtService;
     private final UserRepository userRepository;
     private final AuthenticationManager authenticationManager;
 
@@ -23,11 +24,10 @@ public class AuthService {
         );
         var user = userRepository.findByEmail(authRequest.getEmail()).orElseThrow();
 
-        String accessToken = "etryuioudsdfghjklewrtyui";
-        String refreshToken = "etryuioudsdfghjklewrtyui";
+        var accessToken = jwtService.generateAccessToken(user);
+        var refreshToken = jwtService.generateRefreshToken(user);
 
-
-        return new AuthResponse(accessToken, refreshToken);
+        return new AuthResponse(accessToken.toString(), refreshToken.toString());
     }
 }
 

@@ -2,7 +2,6 @@ package com.example.paygate.auth;
 
 import com.example.paygate.auth.dtos.AccessToken;
 import com.example.paygate.auth.dtos.AuthRequest;
-import com.example.paygate.auth.dtos.AuthResponse;
 import jakarta.servlet.http.Cookie;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;

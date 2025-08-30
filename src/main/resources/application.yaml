@@ -3,11 +3,19 @@ server:
 
 spring:
   application:
-    name: paygate
+    name: pulse payment gateway
+
   datasource:
     url:  jdbc:mysql://localhost:3306/pulse?createDatabaseIfNotExist=true
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
     password: D!ck3n5@123
+
   jpa:
     show-sql: true
+
+  jwt:
+    secret: ${JWT_SECRET}
+    accessTokenExpiration: 900 # 15 minutes
+    refreshTokenExpiration: 604800 # 7 days
+
