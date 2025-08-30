@@ -55,7 +55,6 @@ public class MerchantController {
         return ResponseEntity.noContent().build();
     }
 
-
     @ExceptionHandler(MerchantAlreadyExistsException.class)
     public ResponseEntity<ErrorDto> handleMerchantAlreadyExist(MerchantAlreadyExistsException exception) {
         return ResponseEntity.badRequest().body(
