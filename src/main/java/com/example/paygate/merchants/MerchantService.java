@@ -8,6 +8,7 @@ import com.example.paygate.merchants.dtos.UpdateMerchantRequest;
 import com.example.paygate.merchants.mappers.MerchantMapper;
 import com.example.paygate.users.UserRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -36,8 +37,10 @@ public class MerchantService {
     public MerchantDto createMerchant(CreateMerchantRequest request) {
         var merchant = merchantMapper.toEntity(request);
 
-        // TODO: Use the currently authenticated user
-        var user = userRepository.findById(2L)
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        var userId = (Long) authentication.getPrincipal();
+
+        var user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         if (merchantRepository.existsByUserId(2L)) {

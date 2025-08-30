@@ -2,12 +2,15 @@ package com.example.paygate.auth;
 
 import com.example.paygate.auth.dtos.AccessToken;
 import com.example.paygate.auth.dtos.AuthRequest;
+import com.example.paygate.users.UsersService;
+import com.example.paygate.users.dtos.UserDto;
 import jakarta.servlet.http.Cookie;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.authentication.BadCredentialsException;
 
@@ -17,6 +20,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 public class AuthController {
     private JwtService jwtService;
     private final AuthService authService;
+    private final UsersService usersService;
 
     @PostMapping("/login")
     public ResponseEntity<AccessToken> login(
@@ -48,6 +52,13 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
         return ResponseEntity.ok(accessToken);
+    }
+
+    @GetMapping("/me")
+    public UserDto me() {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        var userId = (Long) authentication.getPrincipal();
+        return usersService.findById(userId);
     }
 
     @ExceptionHandler(BadCredentialsException.class)
