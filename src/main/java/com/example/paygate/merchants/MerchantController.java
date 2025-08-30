@@ -1,6 +1,8 @@
 package com.example.paygate.merchants;
 
 
+import com.example.paygate.exceptions.MerchantAlreadyExistsException;
+import com.example.paygate.exceptions.dtos.ErrorDto;
 import com.example.paygate.merchants.dtos.CreateMerchantRequest;
 import com.example.paygate.merchants.dtos.MerchantDto;
 import com.example.paygate.merchants.dtos.UpdateMerchantRequest;
@@ -51,6 +53,14 @@ public class MerchantController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         merchantService.deleteMerchant(id);
         return ResponseEntity.noContent().build();
+    }
+
+
+    @ExceptionHandler(MerchantAlreadyExistsException.class)
+    public ResponseEntity<ErrorDto> handleMerchantAlreadyExist(MerchantAlreadyExistsException exception) {
+        return ResponseEntity.badRequest().body(
+                new ErrorDto(exception.getMessage())
+        );
     }
 
 }

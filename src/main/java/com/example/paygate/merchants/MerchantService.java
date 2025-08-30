@@ -1,5 +1,6 @@
 package com.example.paygate.merchants;
 
+import com.example.paygate.exceptions.MerchantAlreadyExistsException;
 import com.example.paygate.exceptions.NotFoundException;
 import com.example.paygate.merchants.dtos.CreateMerchantRequest;
 import com.example.paygate.merchants.dtos.MerchantDto;
@@ -35,12 +36,18 @@ public class MerchantService {
     public MerchantDto createMerchant(CreateMerchantRequest request) {
         var merchant = merchantMapper.toEntity(request);
 
-        var user = userRepository.findById(2L) // TODO: Update to use currently authenticated user
+        // TODO: Use the currently authenticated user
+        var user = userRepository.findById(2L)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (merchantRepository.existsByUserId(2L)) {
+            throw new MerchantAlreadyExistsException();
+        }
 
         merchant.setUser(user);
         merchant.generateApiKey();
         merchant.generateSecretKey();
+        merchant.setWebhookActive(true);
         merchantRepository.save(merchant);
 
         return merchantMapper.toDto(merchant);
