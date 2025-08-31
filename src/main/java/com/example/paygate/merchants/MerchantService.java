@@ -33,6 +33,10 @@ public class MerchantService {
         return merchantMapper.toDto(merchant);
     }
 
+    public Merchant getMerchantByApiKey(String apiKey) {
+        return merchantRepository.findByApiKey(apiKey).orElse(null);
+    }
+
 
     public MerchantDto createMerchant(CreateMerchantRequest request) {
         var merchant = merchantMapper.toEntity(request);
