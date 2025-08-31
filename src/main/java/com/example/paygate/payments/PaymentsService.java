@@ -23,7 +23,7 @@ public class PaymentsService {
     public String initiatePayment(Merchant merchant, PaymentRequest paymentRequest) {
         System.out.println(merchant);
         PaymentProvider paymentProvider = paymentProviders.get(Providers.valueOf(paymentRequest.getProvider()));
-        return paymentProvider.initiatePayment(paymentRequest);
+        return paymentProvider.initiatePayment(merchant, paymentRequest);
     }
 
 }
