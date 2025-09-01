@@ -58,10 +58,14 @@ public class Mpesa implements PaymentProvider {
 
 
     private PaymentDto initiateStkPayment(PaymentRequest paymentRequest, Merchant merchant, Customer customer) {
+
+        // Call Build stk request method to build stk request StkRequest
+        // Get the authToken
         var authToken = this.authenticate();
-        System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-        System.out.println(authToken);
-        System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+
+        // make a post request to mpesa stk endpoint (Return StkResponse)
+        // call payment service to build payment -> rturn payment dto
+
         return new PaymentDto();
     }
 

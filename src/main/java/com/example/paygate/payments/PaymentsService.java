@@ -7,6 +7,7 @@ import com.example.paygate.payments.enums.Providers;
 import com.example.paygate.payments.providers.Mpesa;
 import com.example.paygate.payments.providers.PaymentProvider;
 
+import com.example.paygate.transactions.TransactionService;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -15,10 +16,15 @@ import java.util.Map;
 @Service
 public class PaymentsService {
 
+    private final TransactionService transactionService;
     private final Map<Providers, PaymentProvider> paymentProviders = new HashMap<>();
 
-    public PaymentsService(Mpesa mpesa) {
+    public PaymentsService(
+            Mpesa mpesa,
+            TransactionService transactionService
+    ) {
         this.paymentProviders.put(Providers.MPESA, mpesa);
+        this.transactionService = transactionService;
     }
 
     public PaymentDto initiatePayment(PaymentRequest paymentRequest, Merchant merchant) {
@@ -26,5 +32,4 @@ public class PaymentsService {
         PaymentProvider paymentProvider = paymentProviders.get(Providers.valueOf(paymentRequest.getProvider()));
         return paymentProvider.initiatePayment(paymentRequest, merchant);
     }
-
 }
