@@ -21,11 +21,6 @@ public class PaymentsController {
             @Valid @RequestBody PaymentRequest paymentRequest
     ) {
         Merchant merchant = (Merchant) request.getAttribute("merchant");
-        return paymentsService.initiatePayment(merchant, paymentRequest);
-    }
-
-    @PostMapping("/webhooks/mpesa")
-    public String handleMpesaWebhook() {
-        return "Handled";
+        return paymentsService.initiatePayment(paymentRequest, merchant);
     }
 }

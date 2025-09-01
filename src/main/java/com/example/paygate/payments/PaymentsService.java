@@ -21,10 +21,10 @@ public class PaymentsService {
         this.paymentProviders.put(Providers.MPESA, mpesa);
     }
 
-    public PaymentDto initiatePayment(Merchant merchant, PaymentRequest paymentRequest) {
+    public PaymentDto initiatePayment(PaymentRequest paymentRequest, Merchant merchant) {
         System.out.println(merchant);
         PaymentProvider paymentProvider = paymentProviders.get(Providers.valueOf(paymentRequest.getProvider()));
-        return paymentProvider.initiatePayment(merchant, paymentRequest);
+        return paymentProvider.initiatePayment(paymentRequest, merchant);
     }
 
 }

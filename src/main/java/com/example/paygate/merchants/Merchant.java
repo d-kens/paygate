@@ -1,10 +1,13 @@
 package com.example.paygate.merchants;
 
+import com.example.paygate.customers.Customer;
 import com.example.paygate.users.User;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 
@@ -39,6 +42,9 @@ public class Merchant {
 
     @Column(name = "webhook_active")
     private Boolean webhookActive = true;
+
+    @ManyToMany(mappedBy = "merchants")
+    private Set<Customer> customers = new HashSet<>();
 
     @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;

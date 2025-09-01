@@ -7,6 +7,6 @@ import com.example.paygate.payments.dtos.PaymentRequest;
 public interface PaymentProvider {
     String callback();
     String authenticate();
-    PaymentDto initiatePayment(Merchant merchant, PaymentRequest paymentRequest);
+    PaymentDto initiatePayment(PaymentRequest paymentRequest, Merchant merchant);
     String checkPaymentStatus();
 }

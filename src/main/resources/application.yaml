@@ -19,3 +19,7 @@ spring:
     accessTokenExpiration: 900 # 15 minutes
     refreshTokenExpiration: 604800 # 7 days
 
+  mpesa:
+    consumerKey: ${MPESA_CONSUMER_KEY}
+    consumerSecret: ${MPESA_CONSUMER_SECRET}
+    authUrl: https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials
