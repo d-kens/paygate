@@ -1,6 +1,7 @@
 package com.example.paygate.payments.providers;
 
 import com.example.paygate.merchants.Merchant;
+import com.example.paygate.payments.dtos.PaymentDto;
 import com.example.paygate.payments.dtos.PaymentRequest;
 import org.springframework.stereotype.Service;
 
@@ -17,8 +18,8 @@ public class Mpesa implements PaymentProvider{
     }
 
     @Override
-    public String initiatePayment(Merchant merchant, PaymentRequest paymentRequest) {
-        return "Payment Initiated Successfully";
+    public PaymentDto initiatePayment(Merchant merchant, PaymentRequest paymentRequest) {
+       return new PaymentDto();
     }
 
     @Override

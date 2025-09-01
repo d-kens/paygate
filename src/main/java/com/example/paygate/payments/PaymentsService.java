@@ -1,6 +1,7 @@
 package com.example.paygate.payments;
 
 import com.example.paygate.merchants.Merchant;
+import com.example.paygate.payments.dtos.PaymentDto;
 import com.example.paygate.payments.dtos.PaymentRequest;
 import com.example.paygate.payments.enums.Providers;
 import com.example.paygate.payments.providers.Mpesa;
@@ -20,7 +21,7 @@ public class PaymentsService {
         this.paymentProviders.put(Providers.MPESA, mpesa);
     }
 
-    public String initiatePayment(Merchant merchant, PaymentRequest paymentRequest) {
+    public PaymentDto initiatePayment(Merchant merchant, PaymentRequest paymentRequest) {
         System.out.println(merchant);
         PaymentProvider paymentProvider = paymentProviders.get(Providers.valueOf(paymentRequest.getProvider()));
         return paymentProvider.initiatePayment(merchant, paymentRequest);
