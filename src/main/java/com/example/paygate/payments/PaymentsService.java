@@ -4,8 +4,8 @@ import com.example.paygate.merchants.Merchant;
 import com.example.paygate.transactions.dtos.TransactionDto;
 import com.example.paygate.payments.dtos.PaymentRequest;
 import com.example.paygate.payments.enums.Providers;
-import com.example.paygate.payments.providers.Mpesa;
-import com.example.paygate.payments.providers.PaymentProvider;
+import com.example.paygate.payments.providers.mpesa.Mpesa;
+import com.example.paygate.payments.providers.mpesa.PaymentProvider;
 
 import com.example.paygate.transactions.TransactionService;
 import org.springframework.stereotype.Service;

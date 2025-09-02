@@ -25,5 +25,8 @@ spring:
     passKey: ${MPESA_PASSKEY}
     authUrl: ${MPESA_AUTH}
     stkPushUrl: ${MPESA_STKPUSH}
-    stkShortCode: ${MPESA_STK_SHORTCODE}
+    shortCode: ${MPESA_STK_SHORTCODE}
     callBackUrl: ${MPESA_CALLBACK}
+    registerPaybillUrl: ${MPESA_PAYBILL_REGISTER_URLS}
+    confirmationUrl: ${MPESA_CONFIRMATION}
+    validationUrl: ${MPESA_VALIDATION}

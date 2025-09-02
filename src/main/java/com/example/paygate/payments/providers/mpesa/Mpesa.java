@@ -1,18 +1,15 @@
-package com.example.paygate.payments.providers;
+package com.example.paygate.payments.providers.mpesa;
 
 import com.example.paygate.customers.Customer;
 import com.example.paygate.customers.CustomerService;
 import com.example.paygate.customers.dtos.CreateCustomerDto;
 import com.example.paygate.exceptions.PaymentProviderException;
 import com.example.paygate.merchants.Merchant;
-import com.example.paygate.payments.configs.MpesaConfig;
-import com.example.paygate.payments.dtos.mpesa.MpesaStkRequest;
-import com.example.paygate.payments.dtos.mpesa.MpesaStkResponse;
+import com.example.paygate.payments.providers.mpesa.dtos.*;
 import com.example.paygate.transactions.TransactionService;
 import com.example.paygate.transactions.dtos.CreateTransactionRequest;
 import com.example.paygate.transactions.dtos.TransactionDto;
 import com.example.paygate.payments.dtos.PaymentRequest;
-import com.example.paygate.payments.dtos.mpesa.MpesaAuthResponse;
 import com.example.paygate.payments.enums.TransactionType;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
@@ -34,15 +31,9 @@ import java.util.Date;
 public class Mpesa implements PaymentProvider {
     private static final Logger logger = LoggerFactory.getLogger(Mpesa.class);
 
-
     private final MpesaConfig mpesaConfig;
     private final CustomerService customerService;
     private final TransactionService transactionService;
-
-    @Override
-    public String callback() {
-        return "";
-    }
 
     @Override
     public String authenticate() {
@@ -81,10 +72,16 @@ public class Mpesa implements PaymentProvider {
         var customer = buildCustomerAccount(paymentRequest, merchant);
 
         if (paymentRequest.getMobileMoney().getTransactionType() == TransactionType.STK) {
-            return initiateStkPayment(paymentRequest, merchant, customer);
-        } else {
-            return initiatePayBillPayment(paymentRequest, merchant, customer);
+            initiateStkPayment(paymentRequest, merchant, customer);
         }
+
+        return buildAndSaveTransaction(paymentRequest, merchant, customer);
+    }
+
+
+    @Override
+    public String callback() {
+        return "";
     }
 
     @Override
@@ -92,11 +89,9 @@ public class Mpesa implements PaymentProvider {
         return "";
     }
 
-
-    private TransactionDto initiateStkPayment(PaymentRequest paymentRequest, Merchant merchant, Customer customer) {
+    private void initiateStkPayment(PaymentRequest paymentRequest, Merchant merchant, Customer customer) {
         var authToken = this.authenticate();
         try {
-
             var stkRequest = buildMpesaStkRequest(paymentRequest);
 
             RestClient restClient = RestClient
@@ -104,8 +99,7 @@ public class Mpesa implements PaymentProvider {
                     .baseUrl(mpesaConfig.getStkPushUrl())
                     .build();
 
-
-            var stkResponse = restClient.post()
+            restClient.post()
                     .headers(httpHeaders -> {
                         httpHeaders.setBearerAuth(authToken);
                         httpHeaders.setContentType(MediaType.APPLICATION_JSON);
@@ -114,17 +108,6 @@ public class Mpesa implements PaymentProvider {
                     .retrieve()
                     .body(MpesaStkResponse.class);
 
-
-            var transactionRequest = new CreateTransactionRequest(
-                    "PENDING",
-                    customer.getId(),
-                    merchant.getId(),
-                    paymentRequest.getProvider(),
-                    paymentRequest.getAmount(),
-                    paymentRequest.getPaymentRef()
-            );
-
-            return transactionService.createTransaction(transactionRequest);
 
         } catch (RestClientResponseException e) {
             logger.error("Mpesa STK request failed. Status: {} Body: {}", e.getStatusCode(), e.getResponseBodyAsString());
@@ -138,14 +121,24 @@ public class Mpesa implements PaymentProvider {
         }
     }
 
-    private TransactionDto initiatePayBillPayment(PaymentRequest paymentRequest, Merchant merchant, Customer customer) {
-        return new TransactionDto();
+    private TransactionDto buildAndSaveTransaction(PaymentRequest paymentRequest, Merchant merchant, Customer customer) {
+        var transactionRequest = new CreateTransactionRequest(
+                "PENDING",
+                customer.getId(),
+                merchant.getId(),
+                paymentRequest.getProvider(),
+                paymentRequest.getAmount(),
+                paymentRequest.getPaymentRef()
+        );
+
+        return transactionService.createTransaction(transactionRequest);
     }
+
 
     private MpesaStkRequest buildMpesaStkRequest(PaymentRequest paymentRequest) {
         String timestamp = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
 
-        String shortCode = mpesaConfig.getStkShortCode();
+        String shortCode = mpesaConfig.getShortCode();
         String passKey = mpesaConfig.getPassKey();
         String rawPassword = shortCode + passKey + timestamp;
         String password = Base64.getEncoder().encodeToString(rawPassword.getBytes(StandardCharsets.ISO_8859_1));
@@ -156,12 +149,11 @@ public class Mpesa implements PaymentProvider {
         String amount = String.valueOf(paymentRequest.getAmount().setScale(0, RoundingMode.CEILING).intValue());
         var desc = paymentRequest.getAmount() + " paid by " + paymentRequest.getName() + " for transaction " + paymentRequest.getPaymentRef();
 
-
         return new MpesaStkRequest(shortCode, password, timestamp, "CustomerPayBillOnline", amount, phoneNumber, shortCode, phoneNumber,  callBackUrl, accountRef, desc);
     }
 
 
-    public Customer buildCustomerAccount(PaymentRequest paymentRequest, Merchant merchant) {
+    private Customer buildCustomerAccount(PaymentRequest paymentRequest, Merchant merchant) {
         var createCustomerDto = new CreateCustomerDto(
                 paymentRequest.getName(),
                 paymentRequest.getEmailAddress(),
@@ -170,4 +162,37 @@ public class Mpesa implements PaymentProvider {
 
         return customerService.createCustomer(createCustomerDto, merchant);
     }
+
+    public void registerPayBillUrls() {
+        var authToken = this.authenticate();
+
+        try {
+            RestClient restClient = RestClient.builder()
+                    .baseUrl(mpesaConfig.getRegisterPaybillUrl())
+                    .build();
+
+            var registerPayBillUrlReq = new MpesaRegisterUrlRequest(
+                    mpesaConfig.getShortCode(),
+                    "Completed",
+                    mpesaConfig.getConfirmationUrl(),
+                    mpesaConfig.getValidationUrl()
+            );
+
+            restClient.post()
+                    .headers(httpHeaders -> {
+                        httpHeaders.setBearerAuth(authToken);
+                        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+                    })
+                    .body(registerPayBillUrlReq)
+                    .retrieve()
+                    .body(MpesaRegisterUrlResponse.class);
+
+
+        } catch (RestClientResponseException e) {
+            logger.error("Register URL failed. Status: {} Body: {}", e.getStatusCode(), e.getResponseBodyAsString());
+        } catch (RestClientException e) {
+            logger.error("Register URL failed. Error: {}", e.getMessage());
+        }
+    }
+
 }

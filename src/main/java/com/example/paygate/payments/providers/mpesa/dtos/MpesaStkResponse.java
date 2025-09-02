@@ -1,4 +1,4 @@
-package com.example.paygate.payments.dtos.mpesa;
+package com.example.paygate.payments.providers.mpesa.dtos;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;

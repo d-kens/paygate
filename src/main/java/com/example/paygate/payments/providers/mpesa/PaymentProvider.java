@@ -1,4 +1,4 @@
-package com.example.paygate.payments.providers;
+package com.example.paygate.payments.providers.mpesa;
 
 import com.example.paygate.merchants.Merchant;
 import com.example.paygate.transactions.dtos.TransactionDto;
