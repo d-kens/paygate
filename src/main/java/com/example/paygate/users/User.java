@@ -1,16 +1,13 @@
 package com.example.paygate.users;
 
-
 import jakarta.persistence.*;
 import lombok.*;
-
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
 @Entity
-@Builder
 @Table(name = "users")
 public class User {
     @Id

@@ -14,10 +14,9 @@ import java.util.UUID;
 @Entity
 @Getter
 @Setter
-@Builder
-@Table(name = "merchants")
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "merchants")
 public class Merchant {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

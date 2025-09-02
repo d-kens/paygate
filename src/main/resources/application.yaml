@@ -22,4 +22,8 @@ spring:
   mpesa:
     consumerKey: ${MPESA_CONSUMER_KEY}
     consumerSecret: ${MPESA_CONSUMER_SECRET}
-    authUrl: https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials
+    passKey: ${MPESA_PASSKEY}
+    authUrl: ${MPESA_AUTH}
+    stkPushUrl: ${MPESA_STKPUSH}
+    stkShortCode: ${MPESA_STK_SHORTCODE}
+    callBackUrl: ${MPESA_CALLBACK}

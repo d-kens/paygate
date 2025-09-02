@@ -12,6 +12,6 @@ public class MobileMoney {
     private TransactionType transactionType;
 
     @NotBlank(message = "phone number is required")
-    @Pattern(regexp = "^(\\+254|0)7\\d{8}$", message = "phone number must be a valid number")
+    @Pattern(regexp = "^2547\\d{8}$", message = "phone number must start with 254 and be a valid Kenyan number")
     private String phoneNumber;
 }

@@ -1,11 +1,11 @@
-package com.example.paygate.payments.dtos;
+package com.example.paygate.transactions.dtos;
 
 import lombok.Data;
 
 import java.math.BigDecimal;
 
 @Data
-public class PaymentDto {
+public class TransactionDto {
     private Long id;
     private Long merchantId;
     private Long customerId;

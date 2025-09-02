@@ -9,6 +9,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import com.example.paygate.payments.validators.ValidMobileMoney;
 
+import java.math.BigDecimal;
+
 
 @Data
 @ValidMobileMoney
@@ -26,7 +28,7 @@ public class PaymentRequest {
 
     @NotNull(message = "amount is required")
     @Positive(message = "amount should be a positive value")
-    private Double amount;
+    private BigDecimal amount;
 
     @NotBlank(message = "payment reference is required")
     private String paymentRef;

@@ -1,9 +1,13 @@
 package com.example.paygate.payments.dtos.mpesa;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @Data
 public class MpesaAuthResponse {
-    private String expires_in;
-    private String access_token;
+    @JsonProperty("expires_in")
+    private String expiresIn;
+
+    @JsonProperty("access_token")
+    private String accessToken;
 }

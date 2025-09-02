@@ -8,7 +8,11 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "spring.mpesa")
 public class MpesaConfig {
+    private String passKey;
     private String authUrl;
+    private String stkPushUrl;
+    private String callBackUrl;
     private String consumerKey;
+    private String stkShortCode;
     private String consumerSecret;
 }

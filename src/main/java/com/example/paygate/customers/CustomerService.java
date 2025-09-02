@@ -1,6 +1,6 @@
 package com.example.paygate.customers;
 
-import com.example.paygate.customers.dtos.CustomerDto;
+import com.example.paygate.customers.dtos.CreateCustomerDto;
 import com.example.paygate.merchants.Merchant;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -13,7 +13,7 @@ import java.util.Optional;
 public class CustomerService {
     private final CustomerRepository customerRepository;
 
-    public Customer createCustomer(CustomerDto customerDto, Merchant merchant) {
+    public Customer createCustomer(CreateCustomerDto customerDto, Merchant merchant) {
         Optional<Customer> existingCustomer = customerRepository.findByEmail(customerDto.getEmail());
 
         Customer customer;
