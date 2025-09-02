@@ -71,7 +71,7 @@ public class Mpesa implements PaymentProvider {
     public TransactionDto initiatePayment(PaymentRequest paymentRequest, Merchant merchant) {
         var customer = buildCustomerAccount(paymentRequest, merchant);
 
-        if (paymentRequest.getMobileMoney().getTransactionType() == TransactionType.STK) {
+        if (paymentRequest.getMobileMoney().getTransactionType().equals(TransactionType.STK.name())) {
             initiateStkPayment(paymentRequest, merchant, customer);
         }
 
