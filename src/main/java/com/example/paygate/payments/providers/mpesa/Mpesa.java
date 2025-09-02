@@ -164,6 +164,7 @@ public class Mpesa implements PaymentProvider {
     }
 
     public void registerPayBillUrls() {
+        logger.info("Registering MPESA PayBill URLs");
         var authToken = this.authenticate();
 
         try {
@@ -178,7 +179,7 @@ public class Mpesa implements PaymentProvider {
                     mpesaConfig.getValidationUrl()
             );
 
-            restClient.post()
+            var response = restClient.post()
                     .headers(httpHeaders -> {
                         httpHeaders.setBearerAuth(authToken);
                         httpHeaders.setContentType(MediaType.APPLICATION_JSON);
@@ -186,6 +187,8 @@ public class Mpesa implements PaymentProvider {
                     .body(registerPayBillUrlReq)
                     .retrieve()
                     .body(MpesaRegisterUrlResponse.class);
+
+            logger.info(response.toString());
 
 
         } catch (RestClientResponseException e) {
