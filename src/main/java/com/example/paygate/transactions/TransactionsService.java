@@ -6,16 +6,19 @@ import com.example.paygate.merchants.MerchantRepository;
 import com.example.paygate.transactions.dtos.CreateTransactionRequest;
 import com.example.paygate.transactions.dtos.TransactionDto;
 import com.example.paygate.transactions.mappers.TransactionMapper;
+import jakarta.transaction.TransactionalException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @AllArgsConstructor
-public class TransactionService {
+public class TransactionsService {
     private final TransactionMapper transactionMapper;
     private final CustomerRepository customerRepository;
     private final MerchantRepository merchantRepository;
-    private final TransactionRepository transactionRepository;
+    private final TransactionsRepository transactionRepository;
 
     public TransactionDto createTransaction(CreateTransactionRequest transactionRequest) {
         var merchantId = transactionRequest.getMerchantId();
@@ -37,7 +40,20 @@ public class TransactionService {
         return transactionMapper.toDto(transaction);
     }
 
-    public Transaction findTransactionByPaymentRef(String paymentReference) {
-        return transactionRepository.findByPaymentReference(paymentReference).orElse(null);
+    public List<TransactionDto> findAllTransactions() {
+        return transactionRepository.findAll().stream().map(transactionMapper::toDto).toList();
     }
+    
+    public List<TransactionDto> findTransactionsByMerchantId(Long merchantId) {
+        return transactionRepository.findByMerchantId(merchantId).stream().map(transactionMapper::toDto).toList();
+    }
+
+    public TransactionDto findTransactionById(Long transactionId) {
+        var transaction = transactionRepository.findById(transactionId).orElseThrow(
+                () -> new NotFoundException("Transaction with ID " + transactionId + " not found")
+        );
+        return transactionMapper.toDto(transaction);
+    }
+
+
 }

@@ -6,13 +6,10 @@ import com.example.paygate.customers.dtos.CreateCustomerDto;
 import com.example.paygate.exceptions.PaymentProviderException;
 import com.example.paygate.merchants.Merchant;
 import com.example.paygate.payments.providers.mpesa.dtos.*;
-import com.example.paygate.transactions.Transaction;
-import com.example.paygate.transactions.TransactionRepository;
-import com.example.paygate.transactions.TransactionService;
+import com.example.paygate.transactions.TransactionsService;
 import com.example.paygate.transactions.dtos.CreateTransactionRequest;
 import com.example.paygate.transactions.dtos.TransactionDto;
 import com.example.paygate.payments.dtos.PaymentRequest;
-import com.example.paygate.payments.enums.TransactionType;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +19,6 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 
-import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
@@ -36,8 +32,7 @@ public class Mpesa implements PaymentProvider {
 
     private final MpesaConfig mpesaConfig;
     private final CustomerService customerService;
-    private final TransactionService transactionService;
-    private final TransactionRepository transactionRepository;
+    private final TransactionsService transactionsService;
 
     @Override
     public String authenticate() {
@@ -83,7 +78,7 @@ public class Mpesa implements PaymentProvider {
                 paymentRequest.getPaymentRef()
         );
 
-        var transactionDto = transactionService.createTransaction(transactionRequest);
+        var transactionDto = transactionsService.createTransaction(transactionRequest);
         var stkRequest = buildMpesaStkRequest(paymentRequest, transactionDto);
         initiateStkPayment(stkRequest);
         return transactionDto;

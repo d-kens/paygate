@@ -27,6 +27,3 @@ spring:
     stkPushUrl: ${MPESA_STKPUSH}
     shortCode: ${MPESA_STK_SHORTCODE}
     callBackUrl: ${MPESA_CALLBACK}
-    registerPaybillUrl: ${MPESA_PAYBILL_REGISTER_URLS}
-    confirmationUrl: ${MPESA_CONFIRMATION}
-    validationUrl: ${MPESA_VALIDATION}

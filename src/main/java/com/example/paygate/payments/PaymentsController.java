@@ -19,11 +19,9 @@ import org.springframework.web.bind.annotation.*;
 @AllArgsConstructor
 @RequestMapping("/payments")
 public class PaymentsController {
-
     private static final Logger logger = LoggerFactory.getLogger(PaymentsController.class);
 
     private final PaymentsService paymentsService;
-
 
     @PostMapping("/initiate")
     public TransactionDto initiatePayment(

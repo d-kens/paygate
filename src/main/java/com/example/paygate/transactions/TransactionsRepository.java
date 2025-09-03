@@ -4,9 +4,10 @@ package com.example.paygate.transactions;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface TransactionRepository extends JpaRepository<Transaction, Long> {
-    Optional<Transaction> findByPaymentReference(String paymentReference);
+public interface TransactionsRepository extends JpaRepository<Transaction, Long> {
+    List<Transaction> findByMerchantId(Long merchantId);
 }

@@ -6,6 +6,8 @@ import com.example.paygate.exceptions.dtos.ErrorDto;
 import com.example.paygate.merchants.dtos.CreateMerchantRequest;
 import com.example.paygate.merchants.dtos.MerchantDto;
 import com.example.paygate.merchants.dtos.UpdateMerchantRequest;
+import com.example.paygate.transactions.TransactionsService;
+import com.example.paygate.transactions.dtos.TransactionDto;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +22,7 @@ import java.util.List;
 public class MerchantController {
 
     private final MerchantService merchantService;
+    private final TransactionsService transactionsService;
 
     @GetMapping
     public List<MerchantDto> findAll() {
@@ -29,6 +32,11 @@ public class MerchantController {
     @GetMapping("/{merchantId}")
     public MerchantDto findOne(@PathVariable Long merchantId) {
         return merchantService.findOne(merchantId);
+    }
+
+    @GetMapping("/{merchantId}/transactions")
+    public List<TransactionDto> findTransactionsByMerchantId(@PathVariable Long merchantId) {
+        return transactionsService.findTransactionsByMerchantId(merchantId);
     }
 
     @PostMapping
