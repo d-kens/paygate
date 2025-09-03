@@ -15,8 +15,5 @@ public class MpesaConfig {
     private String shortCode;
     private String callBackUrl;
     private String consumerKey;
-    private String validationUrl;
     private String consumerSecret;
-    private String confirmationUrl;
-    private String registerPaybillUrl;
 }

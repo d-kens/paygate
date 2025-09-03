@@ -6,6 +6,7 @@ import com.example.paygate.customers.dtos.CreateCustomerDto;
 import com.example.paygate.exceptions.PaymentProviderException;
 import com.example.paygate.merchants.Merchant;
 import com.example.paygate.payments.providers.mpesa.dtos.*;
+import com.example.paygate.transactions.Transaction;
 import com.example.paygate.transactions.TransactionRepository;
 import com.example.paygate.transactions.TransactionService;
 import com.example.paygate.transactions.dtos.CreateTransactionRequest;
@@ -73,11 +74,19 @@ public class Mpesa implements PaymentProvider {
     public TransactionDto initiatePayment(PaymentRequest paymentRequest, Merchant merchant) {
         var customer = buildCustomerAccount(paymentRequest, merchant);
 
-        if (paymentRequest.getMobileMoney().getTransactionType().equals(TransactionType.STK.name())) {
-            initiateStkPayment(paymentRequest, merchant, customer);
-        }
+        var transactionRequest = new CreateTransactionRequest(
+                "PENDING",
+                customer.getId(),
+                merchant.getId(),
+                paymentRequest.getProvider(),
+                paymentRequest.getAmount().setScale(0, RoundingMode.CEILING),
+                paymentRequest.getPaymentRef()
+        );
 
-        return buildAndSaveTransaction(paymentRequest, merchant, customer);
+        var transactionDto = transactionService.createTransaction(transactionRequest);
+        var stkRequest = buildMpesaStkRequest(paymentRequest, transactionDto);
+        initiateStkPayment(stkRequest);
+        return transactionDto;
     }
 
     @Override
@@ -90,11 +99,9 @@ public class Mpesa implements PaymentProvider {
         return "";
     }
 
-    private void initiateStkPayment(PaymentRequest paymentRequest, Merchant merchant, Customer customer) {
+    private void initiateStkPayment(StkRequest stkRequest) {
         var authToken = this.authenticate();
         try {
-            var stkRequest = buildMpesaStkRequest(paymentRequest);
-
             RestClient restClient = RestClient
                     .builder()
                     .baseUrl(mpesaConfig.getStkPushUrl())
@@ -122,20 +129,7 @@ public class Mpesa implements PaymentProvider {
         }
     }
 
-    private TransactionDto buildAndSaveTransaction(PaymentRequest paymentRequest, Merchant merchant, Customer customer) {
-        var transactionRequest = new CreateTransactionRequest(
-                "PENDING",
-                customer.getId(),
-                merchant.getId(),
-                paymentRequest.getProvider(),
-                paymentRequest.getAmount(),
-                paymentRequest.getPaymentRef()
-        );
-
-        return transactionService.createTransaction(transactionRequest);
-    }
-
-    private StkRequest buildMpesaStkRequest(PaymentRequest paymentRequest) {
+    private StkRequest buildMpesaStkRequest(PaymentRequest paymentRequest, TransactionDto transactionDto) {
         String timestamp = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
 
         String shortCode = mpesaConfig.getShortCode();
@@ -144,9 +138,9 @@ public class Mpesa implements PaymentProvider {
         String password = Base64.getEncoder().encodeToString(rawPassword.getBytes(StandardCharsets.ISO_8859_1));
 
         var callBackUrl = mpesaConfig.getCallBackUrl();
-        var accountRef = paymentRequest.getPaymentRef();
+        var accountRef = transactionDto.getId().toString();
         var phoneNumber = paymentRequest.getMobileMoney().getPhoneNumber();
-        String amount = String.valueOf(paymentRequest.getAmount().setScale(0, RoundingMode.CEILING).intValue());
+        String amount = transactionDto.getAmount().toString();
         var desc = paymentRequest.getAmount() + " paid by " + paymentRequest.getName() + " for transaction " + paymentRequest.getPaymentRef();
 
         return new StkRequest(shortCode, password, timestamp, "CustomerPayBillOnline", amount, phoneNumber, shortCode, phoneNumber,  callBackUrl, accountRef, desc);
@@ -160,64 +154,5 @@ public class Mpesa implements PaymentProvider {
         );
 
         return customerService.createCustomer(createCustomerDto, merchant);
-    }
-
-    public void registerPayBillUrls() {
-        logger.info("Registering MPESA PayBill URLs");
-        var authToken = this.authenticate();
-
-        try {
-            RestClient restClient = RestClient.builder()
-                    .baseUrl(mpesaConfig.getRegisterPaybillUrl())
-                    .build();
-
-            var registerPayBillUrlReq = new RegisterUrlRequest(
-                    mpesaConfig.getShortCode(),
-                    "Completed",
-                    mpesaConfig.getConfirmationUrl(),
-                    mpesaConfig.getValidationUrl()
-            );
-
-            var response = restClient.post()
-                    .headers(httpHeaders -> {
-                        httpHeaders.setBearerAuth(authToken);
-                        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-                    })
-                    .body(registerPayBillUrlReq)
-                    .retrieve()
-                    .body(RegisterUrlResponse.class);
-
-            logger.info(response.toString());
-
-
-        } catch (RestClientResponseException e) {
-            logger.error("Register URL failed. Status: {} Body: {}", e.getStatusCode(), e.getResponseBodyAsString());
-        } catch (RestClientException e) {
-            logger.error("Register URL failed. Error: {}", e.getMessage());
-        }
-    }
-
-    public ConfirmationValidation confirmPayBillPayment(PayBillResponse payBillResponse) {
-        var transaction = transactionService.findTransactionByPaymentRef(payBillResponse.getBillRefNumber());
-
-        if (transaction == null) {
-            logger.warn("Confirmation received for unknown transaction: {}", payBillResponse.getBillRefNumber());
-            return new ConfirmationValidation("0", "Success");
-        }
-
-        var paidAmount = new BigDecimal(payBillResponse.getTransAmount());
-
-        if (transaction.getAmount().compareTo(paidAmount) != 0) {
-            logger.warn("Confirmation amount mismatch. Expected: {}, Received: {} for ref: {}",
-                    transaction.getAmount(), paidAmount, payBillResponse.getBillRefNumber());
-            return new ConfirmationValidation("0", "Success");
-        }
-
-        transaction.setStatus("PAID");
-        transaction.setProviderTransactionId(payBillResponse.getTransID());
-        transactionRepository.save(transaction);
-
-        logger.info("Payment confirmed successfully for transaction: {}", payBillResponse.getBillRefNumber());
-        return new ConfirmationValidation("0", "Success");
     }
 }
