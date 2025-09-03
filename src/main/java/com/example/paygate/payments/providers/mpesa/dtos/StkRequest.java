@@ -7,7 +7,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class MpesaStkRequest {
+public class StkRequest {
     @JsonProperty("BusinessShortCode")
     private String businessShortCode;
 

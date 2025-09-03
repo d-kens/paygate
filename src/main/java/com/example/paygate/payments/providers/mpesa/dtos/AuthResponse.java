@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @Data
-public class MpesaAuthResponse {
+public class AuthResponse {
     @JsonProperty("expires_in")
     private String expiresIn;
 

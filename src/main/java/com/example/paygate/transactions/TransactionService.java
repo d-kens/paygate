@@ -18,10 +18,8 @@ public class TransactionService {
     private final TransactionRepository transactionRepository;
 
     public TransactionDto createTransaction(CreateTransactionRequest transactionRequest) {
-
         var merchantId = transactionRequest.getMerchantId();
         var customerId = transactionRequest.getCustomerId();
-
 
         var transaction = transactionMapper.toEntity(transactionRequest);
 
@@ -37,5 +35,9 @@ public class TransactionService {
         transactionRepository.save(transaction);
 
         return transactionMapper.toDto(transaction);
+    }
+
+    public Transaction findTransactionByPaymentRef(String paymentReference) {
+        return transactionRepository.findByPaymentReference(paymentReference).orElse(null);
     }
 }

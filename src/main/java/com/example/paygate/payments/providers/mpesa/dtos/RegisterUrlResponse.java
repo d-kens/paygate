@@ -6,7 +6,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class MpesaRegisterUrlResponse {
+public class RegisterUrlResponse {
     @JsonProperty("OriginatorCoversationID")
     private String originatorCoversationID;
 

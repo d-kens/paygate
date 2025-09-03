@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @Data
-public class MpesaStkResponse {
+public class StkResponse {
     @JsonProperty("MerchantRequestID")
     private String merchantRequestID;
     @JsonProperty("CheckoutRequestID")

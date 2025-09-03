@@ -6,7 +6,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class MpesaRegisterUrlRequest {
+public class RegisterUrlRequest {
     @JsonProperty("ShortCode")
     private String ShortCode;
 

@@ -6,6 +6,7 @@ import com.example.paygate.customers.dtos.CreateCustomerDto;
 import com.example.paygate.exceptions.PaymentProviderException;
 import com.example.paygate.merchants.Merchant;
 import com.example.paygate.payments.providers.mpesa.dtos.*;
+import com.example.paygate.transactions.TransactionRepository;
 import com.example.paygate.transactions.TransactionService;
 import com.example.paygate.transactions.dtos.CreateTransactionRequest;
 import com.example.paygate.transactions.dtos.TransactionDto;
@@ -20,6 +21,7 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 
+import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
@@ -34,6 +36,7 @@ public class Mpesa implements PaymentProvider {
     private final MpesaConfig mpesaConfig;
     private final CustomerService customerService;
     private final TransactionService transactionService;
+    private final TransactionRepository transactionRepository;
 
     @Override
     public String authenticate() {
@@ -50,7 +53,7 @@ public class Mpesa implements PaymentProvider {
                             mpesaConfig.getConsumerSecret()
                     ))
                     .retrieve()
-                    .body(MpesaAuthResponse.class);
+                    .body(AuthResponse.class);
 
             return authResponse.getAccessToken();
 
@@ -66,7 +69,6 @@ public class Mpesa implements PaymentProvider {
         }
     }
 
-
     @Override
     public TransactionDto initiatePayment(PaymentRequest paymentRequest, Merchant merchant) {
         var customer = buildCustomerAccount(paymentRequest, merchant);
@@ -77,7 +79,6 @@ public class Mpesa implements PaymentProvider {
 
         return buildAndSaveTransaction(paymentRequest, merchant, customer);
     }
-
 
     @Override
     public String callback() {
@@ -106,7 +107,7 @@ public class Mpesa implements PaymentProvider {
                     })
                     .body(stkRequest)
                     .retrieve()
-                    .body(MpesaStkResponse.class);
+                    .body(StkResponse.class);
 
 
         } catch (RestClientResponseException e) {
@@ -134,8 +135,7 @@ public class Mpesa implements PaymentProvider {
         return transactionService.createTransaction(transactionRequest);
     }
 
-
-    private MpesaStkRequest buildMpesaStkRequest(PaymentRequest paymentRequest) {
+    private StkRequest buildMpesaStkRequest(PaymentRequest paymentRequest) {
         String timestamp = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
 
         String shortCode = mpesaConfig.getShortCode();
@@ -149,9 +149,8 @@ public class Mpesa implements PaymentProvider {
         String amount = String.valueOf(paymentRequest.getAmount().setScale(0, RoundingMode.CEILING).intValue());
         var desc = paymentRequest.getAmount() + " paid by " + paymentRequest.getName() + " for transaction " + paymentRequest.getPaymentRef();
 
-        return new MpesaStkRequest(shortCode, password, timestamp, "CustomerPayBillOnline", amount, phoneNumber, shortCode, phoneNumber,  callBackUrl, accountRef, desc);
+        return new StkRequest(shortCode, password, timestamp, "CustomerPayBillOnline", amount, phoneNumber, shortCode, phoneNumber,  callBackUrl, accountRef, desc);
     }
-
 
     private Customer buildCustomerAccount(PaymentRequest paymentRequest, Merchant merchant) {
         var createCustomerDto = new CreateCustomerDto(
@@ -172,7 +171,7 @@ public class Mpesa implements PaymentProvider {
                     .baseUrl(mpesaConfig.getRegisterPaybillUrl())
                     .build();
 
-            var registerPayBillUrlReq = new MpesaRegisterUrlRequest(
+            var registerPayBillUrlReq = new RegisterUrlRequest(
                     mpesaConfig.getShortCode(),
                     "Completed",
                     mpesaConfig.getConfirmationUrl(),
@@ -186,7 +185,7 @@ public class Mpesa implements PaymentProvider {
                     })
                     .body(registerPayBillUrlReq)
                     .retrieve()
-                    .body(MpesaRegisterUrlResponse.class);
+                    .body(RegisterUrlResponse.class);
 
             logger.info(response.toString());
 
@@ -198,4 +197,27 @@ public class Mpesa implements PaymentProvider {
         }
     }
 
+    public ConfirmationValidation confirmPayBillPayment(PayBillResponse payBillResponse) {
+        var transaction = transactionService.findTransactionByPaymentRef(payBillResponse.getBillRefNumber());
+
+        if (transaction == null) {
+            logger.warn("Confirmation received for unknown transaction: {}", payBillResponse.getBillRefNumber());
+            return new ConfirmationValidation("0", "Success");
+        }
+
+        var paidAmount = new BigDecimal(payBillResponse.getTransAmount());
+
+        if (transaction.getAmount().compareTo(paidAmount) != 0) {
+            logger.warn("Confirmation amount mismatch. Expected: {}, Received: {} for ref: {}",
+                    transaction.getAmount(), paidAmount, payBillResponse.getBillRefNumber());
+            return new ConfirmationValidation("0", "Success");
+        }
+
+        transaction.setStatus("PAID");
+        transaction.setProviderTransactionId(payBillResponse.getTransID());
+        transactionRepository.save(transaction);
+
+        logger.info("Payment confirmed successfully for transaction: {}", payBillResponse.getBillRefNumber());
+        return new ConfirmationValidation("0", "Success");
+    }
 }
