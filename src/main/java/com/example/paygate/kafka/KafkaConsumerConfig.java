@@ -31,7 +31,14 @@ public class KafkaConsumerConfig {
 
     @Bean
     public ConsumerFactory<String, MpesaResponse> mpesaCallBackDataConsumerFactory() {
-        return new DefaultKafkaConsumerFactory<>(mpesaCallBackConsumerConfig());
+        JsonDeserializer<MpesaResponse> deserializer = new JsonDeserializer<>(MpesaResponse.class);
+        deserializer.addTrustedPackages("*");
+
+        return new DefaultKafkaConsumerFactory<>(
+                mpesaCallBackConsumerConfig(),
+                new StringDeserializer(),
+                deserializer
+        );
     }
 
     @Bean
