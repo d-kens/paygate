@@ -5,6 +5,7 @@ import com.example.paygate.customers.CustomerService;
 import com.example.paygate.customers.dtos.CreateCustomerDto;
 import com.example.paygate.exceptions.PaymentProviderException;
 import com.example.paygate.merchants.Merchant;
+import com.example.paygate.payments.providers.PaymentProvider;
 import com.example.paygate.payments.providers.mpesa.dtos.*;
 import com.example.paygate.transactions.TransactionsService;
 import com.example.paygate.transactions.dtos.CreateTransactionRequest;
@@ -27,12 +28,13 @@ import java.util.Date;
 
 @Service
 @AllArgsConstructor
-public class Mpesa implements PaymentProvider {
+public class Mpesa implements PaymentProvider<MpesaResponse> {
     private static final Logger logger = LoggerFactory.getLogger(Mpesa.class);
 
     private final MpesaConfig mpesaConfig;
     private final CustomerService customerService;
     private final TransactionsService transactionsService;
+
 
     @Override
     public String authenticate() {
@@ -85,8 +87,10 @@ public class Mpesa implements PaymentProvider {
     }
 
     @Override
-    public String callback() {
-        return "";
+    public void callback(MpesaResponse mpesaResponse) {
+        System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++=");
+        System.out.println(mpesaResponse.getBody().getStkCallBack().getResultCode());
+        System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     }
 
     @Override
@@ -142,12 +146,13 @@ public class Mpesa implements PaymentProvider {
     }
 
     private Customer buildCustomerAccount(PaymentRequest paymentRequest, Merchant merchant) {
-        var createCustomerDto = new CreateCustomerDto(
+        var customer = new CreateCustomerDto(
                 paymentRequest.getName(),
                 paymentRequest.getEmailAddress(),
+                merchant.getId(),
                 paymentRequest.getMobileMoney().getPhoneNumber()
         );
 
-        return customerService.createCustomer(createCustomerDto, merchant);
+        return customerService.createCustomer(customer);
     }
 }

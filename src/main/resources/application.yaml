@@ -16,8 +16,8 @@ spring:
 
   jwt:
     secret: ${JWT_SECRET}
-    accessTokenExpiration: 900 # 15 minutes
-    refreshTokenExpiration: 604800 # 7 days
+    accessTokenExpiration: 900
+    refreshTokenExpiration: 604800
 
   mpesa:
     consumerKey: ${MPESA_CONSUMER_KEY}
@@ -27,3 +27,6 @@ spring:
     stkPushUrl: ${MPESA_STKPUSH}
     shortCode: ${MPESA_STK_SHORTCODE}
     callBackUrl: ${MPESA_CALLBACK}
+    
+  kafka:
+    bootstrap-servers: localhost:9092

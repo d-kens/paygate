@@ -1,12 +1,11 @@
 package com.example.paygate.transactions;
 
-import com.example.paygate.customers.CustomerRepository;
+import com.example.paygate.customers.CustomersRepository;
 import com.example.paygate.exceptions.NotFoundException;
 import com.example.paygate.merchants.MerchantRepository;
 import com.example.paygate.transactions.dtos.CreateTransactionRequest;
 import com.example.paygate.transactions.dtos.TransactionDto;
 import com.example.paygate.transactions.mappers.TransactionMapper;
-import jakarta.transaction.TransactionalException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +15,7 @@ import java.util.List;
 @AllArgsConstructor
 public class TransactionsService {
     private final TransactionMapper transactionMapper;
-    private final CustomerRepository customerRepository;
+    private final CustomersRepository customersRepository;
     private final MerchantRepository merchantRepository;
     private final TransactionsRepository transactionRepository;
 
@@ -26,7 +25,7 @@ public class TransactionsService {
 
         var transaction = transactionMapper.toEntity(transactionRequest);
 
-        var customer = customerRepository.findById(customerId).orElse(null);
+        var customer = customersRepository.findById(customerId).orElse(null);
         if (customer == null) throw new NotFoundException("Customer with ID " + customerId + " not found");
 
         var merchant = merchantRepository.findById(transactionRequest.getMerchantId()).orElse(null);

@@ -1,11 +1,11 @@
-package com.example.paygate.payments.providers.mpesa;
+package com.example.paygate.payments.providers;
 
 import com.example.paygate.merchants.Merchant;
 import com.example.paygate.transactions.dtos.TransactionDto;
 import com.example.paygate.payments.dtos.PaymentRequest;
 
-public interface PaymentProvider {
-    String callback();
+public interface PaymentProvider<T> {
+    void callback(T providerResponse);
     String authenticate();
     TransactionDto initiatePayment(PaymentRequest paymentRequest, Merchant merchant);
     String checkPaymentStatus();

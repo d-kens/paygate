@@ -2,10 +2,14 @@ package com.example.paygate.payments.providers.mpesa.dtos;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
-public class StkCallBackData {
+@NoArgsConstructor
+@AllArgsConstructor
+public class MpesaResponse {
 
     @JsonProperty("Body")
     private Body body;
