@@ -9,7 +9,6 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class CreateCustomerDto {
-
     @NotBlank(message = "customer name is required")
     private String name;
 
@@ -21,5 +20,4 @@ public class CreateCustomerDto {
     private Long merchantId;
 
     private String phone;
-
 }

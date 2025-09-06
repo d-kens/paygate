@@ -1,15 +1,10 @@
 package com.example.paygate.customers;
 
-
 import com.example.paygate.merchants.Merchant;
-import com.example.paygate.payments.dtos.PaymentRequest;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
-
 
 @Getter
 @Setter
@@ -31,13 +26,9 @@ public class Customer {
     @Column(name = "phone")
     private String phone;
 
-    @ManyToMany
-    @JoinTable(
-            name = "merchant_customers",
-            joinColumns = @JoinColumn(name = "customer_id"),
-            inverseJoinColumns = @JoinColumn(name = "merchant_id")
-    )
-    private Set<Merchant> merchants = new HashSet<>();
+    @ManyToOne
+    @JoinColumn(name = "merchant_id")
+    private Merchant merchant;
 
     @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -45,13 +36,14 @@ public class Customer {
     @Column(name = "updated_at", insertable = false, updatable = false)
     private LocalDateTime updatedAt;
 
-    public Customer(String name, String email, String phone) {
-        this.name = name;
-        this.email = email;
-        this.phone = phone;
-        this.merchants = new HashSet<>();
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "(" +
+                "id = " + id + ", " +
+                "name " + name + ", " +
+                "email " + email + ", " +
+                "phone " + phone + ", " +
+                "merchantId " + merchant.getId() + ")";
     }
-
-
-
 }

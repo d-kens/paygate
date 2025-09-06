@@ -42,9 +42,6 @@ public class Merchant {
     @Column(name = "webhook_active")
     private Boolean webhookActive = true;
 
-    @ManyToMany(mappedBy = "merchants")
-    private Set<Customer> customers = new HashSet<>();
-
     @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
 

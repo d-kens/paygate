@@ -5,7 +5,6 @@ import com.example.paygate.exceptions.NotFoundException;
 import com.example.paygate.merchants.dtos.CreateMerchantRequest;
 import com.example.paygate.merchants.dtos.MerchantDto;
 import com.example.paygate.merchants.dtos.UpdateMerchantRequest;
-import com.example.paygate.merchants.mappers.MerchantMapper;
 import com.example.paygate.users.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;

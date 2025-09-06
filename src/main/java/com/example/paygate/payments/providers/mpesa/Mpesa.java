@@ -1,8 +1,8 @@
 package com.example.paygate.payments.providers.mpesa;
 
-import com.example.paygate.customers.Customer;
 import com.example.paygate.customers.CustomerService;
 import com.example.paygate.customers.dtos.CreateCustomerDto;
+import com.example.paygate.customers.dtos.CustomerDto;
 import com.example.paygate.exceptions.PaymentProviderException;
 import com.example.paygate.merchants.Merchant;
 import com.example.paygate.payments.providers.PaymentProvider;
@@ -145,7 +145,7 @@ public class Mpesa implements PaymentProvider<MpesaResponse> {
         return new StkRequest(shortCode, password, timestamp, "CustomerPayBillOnline", amount, phoneNumber, shortCode, phoneNumber,  callBackUrl, accountRef, desc);
     }
 
-    private Customer buildCustomerAccount(PaymentRequest paymentRequest, Merchant merchant) {
+    private CustomerDto buildCustomerAccount(PaymentRequest paymentRequest, Merchant merchant) {
         var customer = new CreateCustomerDto(
                 paymentRequest.getName(),
                 paymentRequest.getEmailAddress(),

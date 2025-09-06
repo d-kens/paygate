@@ -1,6 +1,5 @@
-package com.example.paygate.users.mappers;
+package com.example.paygate.users;
 
-import com.example.paygate.users.User;
 import com.example.paygate.users.dtos.RegisterUserRequest;
 import com.example.paygate.users.dtos.UpdateUserRequest;
 import com.example.paygate.users.dtos.UserDto;

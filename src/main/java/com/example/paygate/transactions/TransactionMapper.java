@@ -1,7 +1,6 @@
-package com.example.paygate.transactions.mappers;
+package com.example.paygate.transactions;
 
 
-import com.example.paygate.transactions.Transaction;
 import com.example.paygate.transactions.dtos.CreateTransactionRequest;
 import com.example.paygate.transactions.dtos.TransactionDto;
 import org.mapstruct.Mapper;

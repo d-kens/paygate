@@ -5,7 +5,6 @@ import com.example.paygate.exceptions.NotFoundException;
 import com.example.paygate.merchants.MerchantRepository;
 import com.example.paygate.transactions.dtos.CreateTransactionRequest;
 import com.example.paygate.transactions.dtos.TransactionDto;
-import com.example.paygate.transactions.mappers.TransactionMapper;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 

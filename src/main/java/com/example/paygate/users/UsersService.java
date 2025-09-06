@@ -7,7 +7,6 @@ import com.example.paygate.users.dtos.ChangePasswordRequest;
 import com.example.paygate.users.dtos.RegisterUserRequest;
 import com.example.paygate.users.dtos.UpdateUserRequest;
 import com.example.paygate.users.dtos.UserDto;
-import com.example.paygate.users.mappers.UserMapper;
 import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

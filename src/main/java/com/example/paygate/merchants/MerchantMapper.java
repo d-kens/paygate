@@ -1,6 +1,5 @@
-package com.example.paygate.merchants.mappers;
+package com.example.paygate.merchants;
 
-import com.example.paygate.merchants.Merchant;
 import com.example.paygate.merchants.dtos.CreateMerchantRequest;
 import com.example.paygate.merchants.dtos.MerchantDto;
 import com.example.paygate.merchants.dtos.UpdateMerchantRequest;
