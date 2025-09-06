@@ -1,6 +1,7 @@
 package com.example.paygate.merchants;
 
-
+import com.example.paygate.customers.CustomerService;
+import com.example.paygate.customers.dtos.CustomerDto;
 import com.example.paygate.exceptions.MerchantAlreadyExistsException;
 import com.example.paygate.exceptions.dtos.ErrorDto;
 import com.example.paygate.merchants.dtos.CreateMerchantRequest;
@@ -22,6 +23,7 @@ import java.util.List;
 public class MerchantController {
 
     private final MerchantService merchantService;
+    private final CustomerService customerService;
     private final TransactionsService transactionsService;
 
     @GetMapping
@@ -37,6 +39,11 @@ public class MerchantController {
     @GetMapping("/{merchantId}/transactions")
     public List<TransactionDto> findTransactionsByMerchantId(@PathVariable Long merchantId) {
         return transactionsService.findTransactionsByMerchantId(merchantId);
+    }
+
+    @GetMapping("/{merchantId}/customers")
+    public List<CustomerDto> findCustomersByMerchantId(@PathVariable Long merchantId) {
+        return customerService.findCustomersByMerchantId(merchantId);
     }
 
     @PostMapping
@@ -69,5 +76,4 @@ public class MerchantController {
                 new ErrorDto(exception.getMessage())
         );
     }
-
 }

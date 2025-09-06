@@ -8,7 +8,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class CreateCustomerDto {
+public class CreateCustomerRequest {
     @NotBlank(message = "customer name is required")
     private String name;
 
