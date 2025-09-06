@@ -6,6 +6,7 @@ import com.example.paygate.merchants.Merchant;
 import com.example.paygate.merchants.MerchantRepository;
 import com.example.paygate.transactions.dtos.CreateTransactionRequest;
 import com.example.paygate.transactions.dtos.TransactionDto;
+import com.example.paygate.transactions.dtos.UpdateTransactionRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,8 +16,8 @@ import java.util.List;
 @AllArgsConstructor
 public class TransactionsService {
     private final TransactionMapper transactionMapper;
-    private final CustomersRepository customersRepository;
     private final MerchantRepository merchantRepository;
+    private final CustomersRepository customersRepository;
     private final TransactionsRepository transactionRepository;
 
     public TransactionDto createTransaction(CreateTransactionRequest transactionRequest) {

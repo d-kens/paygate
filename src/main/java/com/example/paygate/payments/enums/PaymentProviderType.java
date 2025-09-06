@@ -1,5 +1,5 @@
 package com.example.paygate.payments.enums;
 
-public enum Providers {
+public enum PaymentProviderType {
     MPESA
 }

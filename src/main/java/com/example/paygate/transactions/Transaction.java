@@ -41,7 +41,8 @@ public class Transaction {
     @Column(name = "provider_transaction_id")
     private String providerTransactionId;
 
-    private String status = "PENDING";
+    @Enumerated(EnumType.STRING)
+    private TransactionStatus status;
 
     @Column(name = "payment_reference")
     private String paymentReference;

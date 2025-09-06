@@ -1,35 +1,30 @@
 package com.example.paygate.payments;
 
 import com.example.paygate.merchants.Merchant;
-import com.example.paygate.transactions.dtos.TransactionDto;
 import com.example.paygate.payments.dtos.PaymentRequest;
-import com.example.paygate.payments.enums.Providers;
-import com.example.paygate.payments.providers.mpesa.Mpesa;
+import com.example.paygate.transactions.dtos.TransactionDto;
+import com.example.paygate.payments.enums.PaymentProviderType;
 import com.example.paygate.payments.providers.PaymentProvider;
 
-import com.example.paygate.transactions.TransactionsService;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
 public class PaymentsService {
+    private final Map<PaymentProviderType, PaymentProvider<?>> paymentProviders = new HashMap<>();
 
-    private final TransactionsService transactionsService;
-    private final Map<Providers, PaymentProvider> paymentProviders = new HashMap<>();
-
-    public PaymentsService(
-            Mpesa mpesa,
-            TransactionsService transactionsService
-    ) {
-        this.paymentProviders.put(Providers.MPESA, mpesa);
-        this.transactionsService = transactionsService;
+    public PaymentsService(List<PaymentProvider<?>> providers) {
+        for (PaymentProvider<?> provider : providers) {
+            paymentProviders.put(provider.getProviderType(), provider);
+        }
     }
 
     public TransactionDto initiatePayment(PaymentRequest paymentRequest, Merchant merchant) {
-        System.out.println(merchant);
-        PaymentProvider paymentProvider = paymentProviders.get(Providers.valueOf(paymentRequest.getProvider()));
+        PaymentProviderType providerType = PaymentProviderType.valueOf(paymentRequest.getProvider());
+        PaymentProvider<?> paymentProvider = paymentProviders.get(providerType);
         return paymentProvider.initiatePayment(paymentRequest, merchant);
     }
 }

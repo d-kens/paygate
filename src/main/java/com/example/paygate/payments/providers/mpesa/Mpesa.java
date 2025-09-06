@@ -5,8 +5,10 @@ import com.example.paygate.customers.dtos.CreateCustomerRequest;
 import com.example.paygate.customers.dtos.CustomerDto;
 import com.example.paygate.exceptions.PaymentProviderException;
 import com.example.paygate.merchants.Merchant;
-import com.example.paygate.payments.providers.PaymentProvider;
+import com.example.paygate.payments.enums.PaymentProviderType;
 import com.example.paygate.payments.providers.mpesa.dtos.*;
+import com.example.paygate.transactions.TransactionStatus;
+import com.example.paygate.transactions.TransactionsRepository;
 import com.example.paygate.transactions.TransactionsService;
 import com.example.paygate.transactions.dtos.CreateTransactionRequest;
 import com.example.paygate.transactions.dtos.TransactionDto;
@@ -28,12 +30,13 @@ import java.util.Date;
 
 @Service
 @AllArgsConstructor
-public class Mpesa implements PaymentProvider<MpesaResponse> {
+public class Mpesa implements com.example.paygate.payments.providers.PaymentProvider<MpesaResponse> {
     private static final Logger logger = LoggerFactory.getLogger(Mpesa.class);
 
     private final MpesaConfig mpesaConfig;
     private final CustomerService customerService;
     private final TransactionsService transactionsService;
+    private final TransactionsRepository transactionsRepository;
 
 
     @Override
@@ -88,14 +91,41 @@ public class Mpesa implements PaymentProvider<MpesaResponse> {
 
     @Override
     public void callback(MpesaResponse mpesaResponse) {
-        System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++=");
-        System.out.println(mpesaResponse.getBody().getStkCallBack().getResultCode());
-        System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+        Long transactionId = Long.parseLong(mpesaResponse.getBody().getStkCallBack().getMerchantRequestID());
+
+        transactionsRepository.findById(transactionId).ifPresent(transaction -> {
+            var resultCode = mpesaResponse.getBody().getStkCallBack().getResultCode();
+            var checkoutRequestID = mpesaResponse.getBody().getStkCallBack().getCheckoutRequestID();
+            var resultDesc = mpesaResponse.getBody().getStkCallBack().getResultDesc();
+
+            switch (resultCode) {
+                case 0 -> {
+                    transaction.setStatus(TransactionStatus.SUCCESS);
+                    transaction.setProviderTransactionId(checkoutRequestID);
+                    transaction.setDescription(resultDesc);
+                }
+                case 1032 -> {
+                    transaction.setStatus(TransactionStatus.CANCELLED);
+                    transaction.setProviderTransactionId(checkoutRequestID);
+                    transaction.setDescription(resultDesc);
+                }
+                default -> {
+                    transaction.setStatus(TransactionStatus.FAILED);
+                }
+            }
+
+            transactionsRepository.save(transaction);
+        });
     }
 
     @Override
     public String checkPaymentStatus() {
         return "";
+    }
+
+    @Override
+    public PaymentProviderType getProviderType() {
+        return PaymentProviderType.MPESA;
     }
 
     private void initiateStkPayment(StkRequest stkRequest) {

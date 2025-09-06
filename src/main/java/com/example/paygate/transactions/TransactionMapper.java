@@ -3,6 +3,7 @@ package com.example.paygate.transactions;
 
 import com.example.paygate.transactions.dtos.CreateTransactionRequest;
 import com.example.paygate.transactions.dtos.TransactionDto;
+import com.example.paygate.transactions.dtos.UpdateTransactionRequest;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
