@@ -38,6 +38,9 @@ public class Transaction {
 
     private String provider;
 
+    @Column(name = "provider_reference_id")
+    private String providerReferenceId;
+
     @Column(name = "provider_transaction_id")
     private String providerTransactionId;
 

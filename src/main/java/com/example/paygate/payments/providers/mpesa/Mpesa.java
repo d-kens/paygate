@@ -31,12 +31,13 @@ import java.util.Date;
 @Service
 @AllArgsConstructor
 public class Mpesa implements com.example.paygate.payments.providers.PaymentProvider<MpesaResponse> {
-    private static final Logger logger = LoggerFactory.getLogger(Mpesa.class);
 
     private final MpesaConfig mpesaConfig;
     private final CustomerService customerService;
     private final TransactionsService transactionsService;
     private final TransactionsRepository transactionsRepository;
+
+    private static final Logger logger = LoggerFactory.getLogger(Mpesa.class);
 
 
     @Override
@@ -85,6 +86,8 @@ public class Mpesa implements com.example.paygate.payments.providers.PaymentProv
 
         var transactionDto = transactionsService.createTransaction(transactionRequest);
         var stkRequest = buildMpesaStkRequest(paymentRequest, transactionDto);
+
+        System.out.println("oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo");
         initiateStkPayment(stkRequest);
         return transactionDto;
     }
@@ -115,6 +118,11 @@ public class Mpesa implements com.example.paygate.payments.providers.PaymentProv
             }
 
             transactionsRepository.save(transaction);
+
+            // TODO: POST WebHook event to the merchant
+            // TODO: POST Payment notification to customer
+
+
         });
     }
 
@@ -136,7 +144,7 @@ public class Mpesa implements com.example.paygate.payments.providers.PaymentProv
                     .baseUrl(mpesaConfig.getStkPushUrl())
                     .build();
 
-            restClient.post()
+            var stkResponse =  restClient.post()
                     .headers(httpHeaders -> {
                         httpHeaders.setBearerAuth(authToken);
                         httpHeaders.setContentType(MediaType.APPLICATION_JSON);
@@ -145,6 +153,10 @@ public class Mpesa implements com.example.paygate.payments.providers.PaymentProv
                     .retrieve()
                     .body(StkResponse.class);
 
+
+            System.out.println("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+            System.out.println(stkResponse);
+            System.out.println("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
 
         } catch (RestClientResponseException e) {
             logger.error("Mpesa STK request failed. Status: {} Body: {}", e.getStatusCode(), e.getResponseBodyAsString());
@@ -170,7 +182,7 @@ public class Mpesa implements com.example.paygate.payments.providers.PaymentProv
         var accountRef = transactionDto.getId().toString();
         var phoneNumber = paymentRequest.getMobileMoney().getPhoneNumber();
         String amount = transactionDto.getAmount().toString();
-        var desc = paymentRequest.getAmount() + " paid by " + paymentRequest.getName() + " for transaction " + paymentRequest.getPaymentRef();
+        var desc = "Pay for " + transactionDto.getPaymentReference();
 
         return new StkRequest(shortCode, password, timestamp, "CustomerPayBillOnline", amount, phoneNumber, shortCode, phoneNumber,  callBackUrl, accountRef, desc);
     }
