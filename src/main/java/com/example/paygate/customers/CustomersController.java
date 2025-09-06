@@ -26,7 +26,6 @@ public class CustomersController {
         return ResponseEntity.created(uri).body(customerDto);
     }
 
-
     @GetMapping
     public List<CustomerDto> getAllCustomers() {
         return customerService.findAllCustomers();
