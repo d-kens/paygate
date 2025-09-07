@@ -4,9 +4,8 @@ import com.example.paygate.customers.CustomersRepository;
 import com.example.paygate.exceptions.NotFoundException;
 import com.example.paygate.merchants.Merchant;
 import com.example.paygate.merchants.MerchantRepository;
-import com.example.paygate.transactions.dtos.CreateTransactionRequest;
+import com.example.paygate.transactions.dtos.CreateTransactionDto;
 import com.example.paygate.transactions.dtos.TransactionDto;
-import com.example.paygate.transactions.dtos.UpdateTransactionRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,17 +19,22 @@ public class TransactionsService {
     private final CustomersRepository customersRepository;
     private final TransactionsRepository transactionRepository;
 
-    public TransactionDto createTransaction(CreateTransactionRequest transactionRequest) {
-        var merchantId = transactionRequest.getMerchantId();
-        var customerId = transactionRequest.getCustomerId();
+    public TransactionDto createTransaction(CreateTransactionDto transactionDto) {
+        var merchantId = transactionDto.getMerchantId();
+        var customerId = transactionDto.getCustomerId();
 
-        var transaction = transactionMapper.toEntity(transactionRequest);
+        var customer = customersRepository.findById(customerId).orElseThrow(
+                () -> new NotFoundException(
+                        "Customer with ID " + customerId + " not found"
+                )
+        );
+        var merchant = merchantRepository.findById(merchantId).orElseThrow(
+                () -> new NotFoundException(
+                        "Merchant with ID " + merchantId + " not found"
+                )
+        );
 
-        var customer = customersRepository.findById(customerId).orElse(null);
-        if (customer == null) throw new NotFoundException("Customer with ID " + customerId + " not found");
-
-        var merchant = merchantRepository.findById(transactionRequest.getMerchantId()).orElse(null);
-        if (merchant == null) throw new NotFoundException("Merchant with ID " + merchantId + " not found");
+        var transaction = transactionMapper.toEntity(transactionDto);
 
         transaction.setCustomer(customer);
         transaction.setMerchant(merchant);
@@ -50,7 +54,7 @@ public class TransactionsService {
         );
         return transactionMapper.toDto(transaction);
     }
-    
+
     public List<TransactionDto> findTransactionsByMerchantId(Long merchantId) {
         Merchant merchant = merchantRepository.findById(merchantId).orElseThrow(
                 () -> new NotFoundException("Merchant with ID " + merchantId + " not found")

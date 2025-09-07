@@ -47,8 +47,8 @@ public class Transaction {
     @Enumerated(EnumType.STRING)
     private TransactionStatus status;
 
-    @Column(name = "payment_reference")
-    private String paymentReference;
+    @Column(name = "merchant_payment_reference")
+    private String merchantPaymentReference;
 
     private String description;
 

@@ -7,10 +7,8 @@ import com.example.paygate.exceptions.PaymentProviderException;
 import com.example.paygate.merchants.Merchant;
 import com.example.paygate.payments.enums.PaymentProviderType;
 import com.example.paygate.payments.providers.mpesa.dtos.*;
-import com.example.paygate.transactions.TransactionStatus;
-import com.example.paygate.transactions.TransactionsRepository;
 import com.example.paygate.transactions.TransactionsService;
-import com.example.paygate.transactions.dtos.CreateTransactionRequest;
+import com.example.paygate.transactions.dtos.CreateTransactionDto;
 import com.example.paygate.transactions.dtos.TransactionDto;
 import com.example.paygate.payments.dtos.PaymentRequest;
 import lombok.AllArgsConstructor;
@@ -22,7 +20,6 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 
-import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Base64;
@@ -35,7 +32,6 @@ public class Mpesa implements com.example.paygate.payments.providers.PaymentProv
     private final MpesaConfig mpesaConfig;
     private final CustomerService customerService;
     private final TransactionsService transactionsService;
-    private final TransactionsRepository transactionsRepository;
 
     private static final Logger logger = LoggerFactory.getLogger(Mpesa.class);
 
@@ -73,57 +69,26 @@ public class Mpesa implements com.example.paygate.payments.providers.PaymentProv
 
     @Override
     public TransactionDto initiatePayment(PaymentRequest paymentRequest, Merchant merchant) {
+        var stkRequest = buildMpesaStkRequest(paymentRequest);
+        var stkResponse = initiateStkPayment(stkRequest);
         var customer = buildCustomerAccount(paymentRequest, merchant);
 
-        var transactionRequest = new CreateTransactionRequest(
-                "PENDING",
-                customer.getId(),
+
+        var createTransactionDto = new CreateTransactionDto(
                 merchant.getId(),
+                customer.getId(),
+                paymentRequest.getAmount(),
                 paymentRequest.getProvider(),
-                paymentRequest.getAmount().setScale(0, RoundingMode.CEILING),
-                paymentRequest.getPaymentRef()
+                paymentRequest.getPaymentRef(),
+                stkResponse.getMerchantRequestID()
         );
 
-        var transactionDto = transactionsService.createTransaction(transactionRequest);
-        var stkRequest = buildMpesaStkRequest(paymentRequest, transactionDto);
-
-        System.out.println("oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo");
-        initiateStkPayment(stkRequest);
-        return transactionDto;
+        return transactionsService.createTransaction(createTransactionDto);
     }
 
     @Override
     public void callback(MpesaResponse mpesaResponse) {
-        Long transactionId = Long.parseLong(mpesaResponse.getBody().getStkCallBack().getMerchantRequestID());
 
-        transactionsRepository.findById(transactionId).ifPresent(transaction -> {
-            var resultCode = mpesaResponse.getBody().getStkCallBack().getResultCode();
-            var checkoutRequestID = mpesaResponse.getBody().getStkCallBack().getCheckoutRequestID();
-            var resultDesc = mpesaResponse.getBody().getStkCallBack().getResultDesc();
-
-            switch (resultCode) {
-                case 0 -> {
-                    transaction.setStatus(TransactionStatus.SUCCESS);
-                    transaction.setProviderTransactionId(checkoutRequestID);
-                    transaction.setDescription(resultDesc);
-                }
-                case 1032 -> {
-                    transaction.setStatus(TransactionStatus.CANCELLED);
-                    transaction.setProviderTransactionId(checkoutRequestID);
-                    transaction.setDescription(resultDesc);
-                }
-                default -> {
-                    transaction.setStatus(TransactionStatus.FAILED);
-                }
-            }
-
-            transactionsRepository.save(transaction);
-
-            // TODO: POST WebHook event to the merchant
-            // TODO: POST Payment notification to customer
-
-
-        });
     }
 
     @Override
@@ -136,7 +101,7 @@ public class Mpesa implements com.example.paygate.payments.providers.PaymentProv
         return PaymentProviderType.MPESA;
     }
 
-    private void initiateStkPayment(StkRequest stkRequest) {
+    private StkResponse initiateStkPayment(StkRequest stkRequest) {
         var authToken = this.authenticate();
         try {
             RestClient restClient = RestClient
@@ -144,7 +109,7 @@ public class Mpesa implements com.example.paygate.payments.providers.PaymentProv
                     .baseUrl(mpesaConfig.getStkPushUrl())
                     .build();
 
-            var stkResponse =  restClient.post()
+            return restClient.post()
                     .headers(httpHeaders -> {
                         httpHeaders.setBearerAuth(authToken);
                         httpHeaders.setContentType(MediaType.APPLICATION_JSON);
@@ -152,11 +117,6 @@ public class Mpesa implements com.example.paygate.payments.providers.PaymentProv
                     .body(stkRequest)
                     .retrieve()
                     .body(StkResponse.class);
-
-
-            System.out.println("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
-            System.out.println(stkResponse);
-            System.out.println("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
 
         } catch (RestClientResponseException e) {
             logger.error("Mpesa STK request failed. Status: {} Body: {}", e.getStatusCode(), e.getResponseBodyAsString());
@@ -170,7 +130,7 @@ public class Mpesa implements com.example.paygate.payments.providers.PaymentProv
         }
     }
 
-    private StkRequest buildMpesaStkRequest(PaymentRequest paymentRequest, TransactionDto transactionDto) {
+    private StkRequest buildMpesaStkRequest(PaymentRequest paymentRequest) {
         String timestamp = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
 
         String shortCode = mpesaConfig.getShortCode();
@@ -179,10 +139,10 @@ public class Mpesa implements com.example.paygate.payments.providers.PaymentProv
         String password = Base64.getEncoder().encodeToString(rawPassword.getBytes(StandardCharsets.ISO_8859_1));
 
         var callBackUrl = mpesaConfig.getCallBackUrl();
-        var accountRef = transactionDto.getId().toString();
+        var accountRef = paymentRequest.getPaymentRef();
         var phoneNumber = paymentRequest.getMobileMoney().getPhoneNumber();
-        String amount = transactionDto.getAmount().toString();
-        var desc = "Pay for " + transactionDto.getPaymentReference();
+        String amount = paymentRequest.getAmount().toString();
+        var desc = "Pay for " + paymentRequest.getPaymentRef();
 
         return new StkRequest(shortCode, password, timestamp, "CustomerPayBillOnline", amount, phoneNumber, shortCode, phoneNumber,  callBackUrl, accountRef, desc);
     }
