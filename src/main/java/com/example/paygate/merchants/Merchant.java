@@ -1,13 +1,10 @@
 package com.example.paygate.merchants;
 
-import com.example.paygate.customers.Customer;
 import com.example.paygate.users.User;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 
 

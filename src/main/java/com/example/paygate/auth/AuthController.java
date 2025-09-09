@@ -2,6 +2,7 @@ package com.example.paygate.auth;
 
 import com.example.paygate.auth.dtos.AccessToken;
 import com.example.paygate.auth.dtos.AuthRequest;
+import com.example.paygate.config.JwtConfig;
 import com.example.paygate.users.UsersService;
 import com.example.paygate.users.dtos.UserDto;
 import jakarta.servlet.http.Cookie;
@@ -18,7 +19,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 @AllArgsConstructor
 @RequestMapping("/auth")
 public class AuthController {
-    private JwtService jwtService;
+    private JwtConfig jwtConfig;
     private final AuthService authService;
     private final UsersService usersService;
 
@@ -32,7 +33,7 @@ public class AuthController {
         var cookie = new Cookie("refreshToken", authResponse.getRefreshToken());
         cookie.setHttpOnly(true);
         cookie.setPath("/auth/refresh");
-        cookie.setMaxAge(9000);
+        cookie.setMaxAge(jwtConfig.getRefreshTokenExpiration());
         cookie.setSecure(true);
         response.addCookie(cookie);
 

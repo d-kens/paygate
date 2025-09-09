@@ -7,6 +7,8 @@ import com.example.paygate.exceptions.PaymentProviderException;
 import com.example.paygate.merchants.Merchant;
 import com.example.paygate.payments.enums.PaymentProviderType;
 import com.example.paygate.payments.providers.mpesa.dtos.*;
+import com.example.paygate.transactions.Transaction;
+import com.example.paygate.transactions.TransactionStatus;
 import com.example.paygate.transactions.TransactionsService;
 import com.example.paygate.transactions.dtos.CreateTransactionDto;
 import com.example.paygate.transactions.dtos.TransactionDto;
@@ -87,16 +89,6 @@ public class Mpesa implements com.example.paygate.payments.providers.PaymentProv
     }
 
     @Override
-    public void callback(MpesaResponse mpesaResponse) {
-
-    }
-
-    @Override
-    public String checkPaymentStatus() {
-        return "";
-    }
-
-    @Override
     public PaymentProviderType getProviderType() {
         return PaymentProviderType.MPESA;
     }
@@ -156,5 +148,50 @@ public class Mpesa implements com.example.paygate.payments.providers.PaymentProv
         );
 
         return customerService.createCustomer(customerRequest);
+    }
+
+    @Override
+    public void callback(MpesaResponse mpesaResponse) {
+        String providerReferenceId = mpesaResponse.getBody().getStkCallBack().getMerchantRequestID();
+        Transaction transaction = transactionsService.findTransactionByProviderReferenceId(providerReferenceId);
+
+        if (transaction != null) {
+            int resultCode = mpesaResponse.getBody().getStkCallBack().getResultCode();
+
+            switch (resultCode) {
+                case 0:
+                    transaction.setStatus(TransactionStatus.SUCCESS);
+                    transaction.setDescription(mpesaResponse.getBody().getStkCallBack().getResultDesc());
+
+                    MpesaResponse.CallBackMetaData callBackMetaData = mpesaResponse.getBody().getStkCallBack().getCallBackMetaData();
+
+
+                    if (callBackMetaData != null && callBackMetaData.getItem() != null) {
+                        for (MpesaResponse.Item item : callBackMetaData.getItem()) {
+                            if ("MpesaReceiptNumber".equals(item.getName()))
+                                transaction.setProviderTransactionId(item.getValue());
+
+                            if ("PhoneNumber".equals(item.getName()))
+                                transaction.setPaidBy(item.getValue());
+                        }
+                    }
+                    break;
+                case 1032:
+                    transaction.setStatus(TransactionStatus.CANCELLED);
+                    transaction.setDescription(mpesaResponse.getBody().getStkCallBack().getResultDesc());
+                    break;
+                default:
+                    transaction.setStatus(TransactionStatus.FAILED);
+                    break;
+            }
+
+            Transaction updatedTransaction =  transactionsService.updateTransaction(transaction);
+        }
+
+    }
+
+    @Override
+    public String checkPaymentStatus() {
+        return "";
     }
 }

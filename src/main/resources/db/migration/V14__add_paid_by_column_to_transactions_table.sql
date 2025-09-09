@@ -1,0 +1,2 @@
+ALTER TABLE transactions
+ADD COLUMN paid_by VARCHAR(100)

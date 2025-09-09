@@ -7,12 +7,12 @@ import java.math.BigDecimal;
 @Data
 public class TransactionDto {
     private Long id;
+    private String currency;
+    private String provider;
+    private String status;
     private Long merchantId;
     private Long customerId;
     private BigDecimal amount;
-    private String currency;
-    private String provider;
     private String providerTransactionId;
-    private String status;
-    private String paymentReference;
+    private String merchantPaymentReference;
 }

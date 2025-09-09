@@ -1,5 +1,6 @@
 package com.example.paygate.auth.dtos;
 
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 

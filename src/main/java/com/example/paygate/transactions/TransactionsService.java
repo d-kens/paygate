@@ -2,7 +2,6 @@ package com.example.paygate.transactions;
 
 import com.example.paygate.customers.CustomersRepository;
 import com.example.paygate.exceptions.NotFoundException;
-import com.example.paygate.merchants.Merchant;
 import com.example.paygate.merchants.MerchantRepository;
 import com.example.paygate.transactions.dtos.CreateTransactionDto;
 import com.example.paygate.transactions.dtos.TransactionDto;
@@ -56,10 +55,18 @@ public class TransactionsService {
     }
 
     public List<TransactionDto> findTransactionsByMerchantId(Long merchantId) {
-        Merchant merchant = merchantRepository.findById(merchantId).orElseThrow(
+        merchantRepository.findById(merchantId).orElseThrow(
                 () -> new NotFoundException("Merchant with ID " + merchantId + " not found")
         );
 
         return transactionRepository.findByMerchantId(merchantId).stream().map(transactionMapper::toDto).toList();
+    }
+
+    public Transaction findTransactionByProviderReferenceId(String providerReferenceId) {
+        return transactionRepository.findByProviderReferenceId(providerReferenceId).orElse(null);
+    }
+
+    public Transaction updateTransaction(Transaction transaction) {
+        return transactionRepository.save(transaction);
     }
 }

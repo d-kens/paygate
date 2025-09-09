@@ -1,6 +1,5 @@
 package com.example.paygate.transactions;
 
-
 import com.example.paygate.customers.Customer;
 import com.example.paygate.merchants.Merchant;
 import jakarta.persistence.*;
@@ -45,12 +44,15 @@ public class Transaction {
     private String providerTransactionId;
 
     @Enumerated(EnumType.STRING)
-    private TransactionStatus status;
+    private TransactionStatus status = TransactionStatus.PENDING;
 
     @Column(name = "merchant_payment_reference")
     private String merchantPaymentReference;
 
     private String description;
+
+    @Column(name = "paid_by")
+    private String paidBy;
 
     @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
