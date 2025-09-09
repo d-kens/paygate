@@ -17,6 +17,7 @@ import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
@@ -34,6 +35,7 @@ public class Mpesa implements com.example.paygate.payments.providers.PaymentProv
     private final MpesaConfig mpesaConfig;
     private final CustomerService customerService;
     private final TransactionsService transactionsService;
+    private final KafkaTemplate<String, Transaction> merchantWebhookTemplate;
 
     private static final Logger logger = LoggerFactory.getLogger(Mpesa.class);
 
@@ -186,6 +188,8 @@ public class Mpesa implements com.example.paygate.payments.providers.PaymentProv
             }
 
             Transaction updatedTransaction =  transactionsService.updateTransaction(transaction);
+
+            merchantWebhookTemplate.send("merchant.webhook", updatedTransaction);
         }
 
     }

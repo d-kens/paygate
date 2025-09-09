@@ -2,6 +2,7 @@ package com.example.paygate.kafka;
 
 
 import com.example.paygate.payments.providers.mpesa.dtos.MpesaResponse;
+import com.example.paygate.transactions.Transaction;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,7 +22,7 @@ public class KafkaConsumerConfig {
     private String boostrapServers;
 
 
-    public Map<String, Object> mpesaCallBackConsumerConfig() {
+    public Map<String, Object> consumerConfig() {
         Map<String, Object> props = new HashMap<>();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, boostrapServers);
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
@@ -35,7 +36,7 @@ public class KafkaConsumerConfig {
         deserializer.addTrustedPackages("*");
 
         return new DefaultKafkaConsumerFactory<>(
-                mpesaCallBackConsumerConfig(),
+                consumerConfig(),
                 new StringDeserializer(),
                 deserializer
         );
@@ -45,6 +46,26 @@ public class KafkaConsumerConfig {
     public ConcurrentKafkaListenerContainerFactory<String, MpesaResponse> mpesaCallBackKafkaListenerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, MpesaResponse> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(mpesaCallBackDataConsumerFactory());
+        return  factory;
+    }
+
+
+    @Bean
+    public ConsumerFactory<String, Transaction> merchantWebhookConsumerFactory() {
+        JsonDeserializer<Transaction> deserializer = new JsonDeserializer<>(Transaction.class);
+        deserializer.addTrustedPackages("*");
+
+        return new DefaultKafkaConsumerFactory<>(
+                consumerConfig(),
+                new StringDeserializer(),
+                deserializer
+        );
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, Transaction> merchantWebhookKafkaListenerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, Transaction> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(merchantWebhookConsumerFactory());
         return  factory;
     }
 }

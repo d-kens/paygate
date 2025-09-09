@@ -1,6 +1,7 @@
 package com.example.paygate.kafka;
 
 import com.example.paygate.payments.providers.mpesa.dtos.MpesaResponse;
+import com.example.paygate.transactions.Transaction;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,7 +20,7 @@ public class KafkaProducerConfig {
     @Value("${spring.kafka.bootstrap-servers}")
     private String boostrapServers;
 
-    public Map<String, Object> mpesaCallBackProducerConfig() {
+    public Map<String, Object> producerConfig() {
         Map<String, Object> props = new HashMap<>();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, boostrapServers);
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
@@ -29,7 +30,7 @@ public class KafkaProducerConfig {
 
     @Bean
     public ProducerFactory<String, MpesaResponse> mpesaCallBackProducerFactory() {
-        return new DefaultKafkaProducerFactory<>(mpesaCallBackProducerConfig());
+        return new DefaultKafkaProducerFactory<>(producerConfig());
     }
 
     @Bean
@@ -37,5 +38,13 @@ public class KafkaProducerConfig {
         return new KafkaTemplate<>(mpesaCallBackProducerFactory());
     }
 
+    @Bean
+    public ProducerFactory<String, Transaction> merchantWebhookProducerFactory() {
+        return new DefaultKafkaProducerFactory<>(producerConfig());
+    }
 
+    @Bean
+    public KafkaTemplate<String, Transaction> merchantWebhookTemplate() {
+        return new KafkaTemplate<>(merchantWebhookProducerFactory());
+    }
 }
