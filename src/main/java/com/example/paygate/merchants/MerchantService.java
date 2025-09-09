@@ -37,7 +37,7 @@ public class MerchantService {
     }
 
 
-    public MerchantDto createMerchant(CreateMerchantRequest request) {
+    public MerchantDto createMerchant(CreateMerchantRequest request) { // Duplicate
         var merchant = merchantMapper.toEntity(request);
 
         var authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -46,7 +46,8 @@ public class MerchantService {
         var user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if (merchantRepository.existsByUserId(2L)) {
+        if (merchantRepository.existsByUserId(userId)) {
+            System.out.println("This happened: ................................");
             throw new MerchantAlreadyExistsException();
         }
 
