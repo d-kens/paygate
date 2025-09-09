@@ -14,11 +14,12 @@ import com.example.paygate.transactions.TransactionsService;
 import com.example.paygate.transactions.dtos.CreateTransactionDto;
 import com.example.paygate.transactions.dtos.TransactionDto;
 import com.example.paygate.payments.dtos.PaymentRequest;
+import com.example.paygate.webhook.WebhookEventService;
+import com.example.paygate.webhook.dtos.WebhookPayload;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
@@ -35,8 +36,8 @@ public class Mpesa implements PaymentProvider<MpesaResponse> {
 
     private final MpesaConfig mpesaConfig;
     private final CustomerService customerService;
+    private final WebhookEventService webhookEventService;
     private final TransactionsService transactionsService;
-    private final KafkaTemplate<String, Transaction> merchantWebhookTemplate;
 
     private static final Logger logger = LoggerFactory.getLogger(Mpesa.class);
 
@@ -217,15 +218,23 @@ public class Mpesa implements PaymentProvider<MpesaResponse> {
             }
 
             Transaction updatedTransaction =  transactionsService.updateTransaction(transaction);
-            merchantWebhookTemplate.send("merchant.webhook", updatedTransaction);
 
+            var webhookPayload = new WebhookPayload(
+                    updatedTransaction.getId(),
+                    updatedTransaction.getStatus().toString(),
+                    updatedTransaction.getAmount(),
+                    updatedTransaction.getCurrency(),
+                    updatedTransaction.getMerchantPaymentReference()
+            );
+
+            webhookEventService.createAndDispatch(
+                    updatedTransaction.getId(),
+                    updatedTransaction.getMerchant().getId(),
+                    updatedTransaction.getMerchant().getWebhookUrl(),
+                    webhookPayload
+            );
         } catch (Exception e) {
             logger.error("Error while processing Mpesa callback", e);
         }
-    }
-
-    @Override
-    public String checkPaymentStatus() {
-        return "";
     }
 }

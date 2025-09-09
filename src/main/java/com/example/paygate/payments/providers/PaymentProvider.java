@@ -10,5 +10,4 @@ public interface PaymentProvider<T> {
     void callback(T providerResponse);
     String authenticate();
     TransactionDto initiatePayment(PaymentRequest paymentRequest, Merchant merchant);
-    String checkPaymentStatus();
 }
