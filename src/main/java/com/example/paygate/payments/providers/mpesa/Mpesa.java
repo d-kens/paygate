@@ -6,6 +6,7 @@ import com.example.paygate.customers.dtos.CustomerDto;
 import com.example.paygate.exceptions.PaymentProviderException;
 import com.example.paygate.merchants.Merchant;
 import com.example.paygate.payments.enums.PaymentProviderType;
+import com.example.paygate.payments.providers.PaymentProvider;
 import com.example.paygate.payments.providers.mpesa.dtos.*;
 import com.example.paygate.transactions.Transaction;
 import com.example.paygate.transactions.TransactionStatus;
@@ -30,7 +31,7 @@ import java.util.Date;
 
 @Service
 @AllArgsConstructor
-public class Mpesa implements com.example.paygate.payments.providers.PaymentProvider<MpesaResponse> {
+public class Mpesa implements PaymentProvider<MpesaResponse> {
 
     private final MpesaConfig mpesaConfig;
     private final CustomerService customerService;
@@ -39,6 +40,10 @@ public class Mpesa implements com.example.paygate.payments.providers.PaymentProv
 
     private static final Logger logger = LoggerFactory.getLogger(Mpesa.class);
 
+    @Override
+    public PaymentProviderType getProviderType() {
+        return PaymentProviderType.MPESA;
+    }
 
     @Override
     public String authenticate() {
@@ -73,26 +78,31 @@ public class Mpesa implements com.example.paygate.payments.providers.PaymentProv
 
     @Override
     public TransactionDto initiatePayment(PaymentRequest paymentRequest, Merchant merchant) {
-        var stkRequest = buildMpesaStkRequest(paymentRequest);
-        var stkResponse = initiateStkPayment(stkRequest);
-        var customer = buildCustomerAccount(paymentRequest, merchant);
+
+        try {
+            var stkRequest = buildMpesaStkRequest(paymentRequest);
+            var stkResponse = initiateStkPayment(stkRequest);
+            var customer = buildCustomerAccount(paymentRequest, merchant);
 
 
-        var createTransactionDto = new CreateTransactionDto(
-                merchant.getId(),
-                customer.getId(),
-                paymentRequest.getAmount(),
-                paymentRequest.getProvider(),
-                paymentRequest.getPaymentRef(),
-                stkResponse.getMerchantRequestID()
-        );
+            var createTransactionDto = new CreateTransactionDto(
+                    merchant.getId(),
+                    customer.getId(),
+                    paymentRequest.getAmount(),
+                    paymentRequest.getProvider(),
+                    paymentRequest.getPaymentRef(),
+                    stkResponse.getMerchantRequestID()
+            );
 
-        return transactionsService.createTransaction(createTransactionDto);
-    }
+            return transactionsService.createTransaction(createTransactionDto);
 
-    @Override
-    public PaymentProviderType getProviderType() {
-        return PaymentProviderType.MPESA;
+        } catch (PaymentProviderException e) {
+            throw e;
+        } catch (Exception e) {
+            logger.error("Failed to initiate Mpesa payment for merchantId={} paymentRef={}",
+                    merchant.getId(), paymentRequest.getPaymentRef(), e);
+            throw new PaymentProviderException("Failed to initiate Mpesa payment");
+        }
     }
 
     private StkResponse initiateStkPayment(StkRequest stkRequest) {
@@ -119,7 +129,7 @@ public class Mpesa implements com.example.paygate.payments.providers.PaymentProv
             );
         }
         catch (RestClientException e) {
-            logger.error("Unable to reach Mpesa: {}", e.getMessage(), e.getMessage());
+            logger.error("Unable to reach Mpesa: {}", e.getMessage());
             throw new PaymentProviderException("Unable to reach Mpesa STK service");
         }
     }
@@ -142,22 +152,41 @@ public class Mpesa implements com.example.paygate.payments.providers.PaymentProv
     }
 
     private CustomerDto buildCustomerAccount(PaymentRequest paymentRequest, Merchant merchant) {
-        var customerRequest = new CreateCustomerRequest(
-                paymentRequest.getName(),
-                paymentRequest.getEmailAddress(),
-                merchant.getId(),
-                paymentRequest.getMobileMoney().getPhoneNumber()
-        );
 
-        return customerService.createCustomer(customerRequest);
+        try {
+            var customerRequest = new CreateCustomerRequest(
+                    paymentRequest.getName(),
+                    paymentRequest.getEmailAddress(),
+                    merchant.getId(),
+                    paymentRequest.getMobileMoney().getPhoneNumber()
+            );
+
+            return customerService.createCustomer(customerRequest);
+
+        } catch (Exception e) {
+            logger.error("Failed to create customer for merchantId={} paymentRef={}",
+                    merchant.getId(), paymentRequest.getPaymentRef(), e);
+            throw new PaymentProviderException("Failed to create customer for Mpesa payment");
+        }
     }
 
     @Override
     public void callback(MpesaResponse mpesaResponse) {
-        String providerReferenceId = mpesaResponse.getBody().getStkCallBack().getMerchantRequestID();
-        Transaction transaction = transactionsService.findTransactionByProviderReferenceId(providerReferenceId);
+        try {
+            if (mpesaResponse == null || mpesaResponse.getBody() == null || mpesaResponse.getBody().getStkCallBack() == null) {
+                logger.warn("Invalid Mpesa callback received: {}", mpesaResponse);
+                return;
+            }
 
-        if (transaction != null) {
+            String providerReferenceId = mpesaResponse.getBody().getStkCallBack().getMerchantRequestID();
+            Transaction transaction = transactionsService.findTransactionByProviderReferenceId(providerReferenceId);
+
+
+            if (transaction == null) {
+                logger.error("No transaction found for the providerReferenceId={}", providerReferenceId);
+                return;
+            }
+
             int resultCode = mpesaResponse.getBody().getStkCallBack().getResultCode();
 
             switch (resultCode) {
@@ -188,10 +217,11 @@ public class Mpesa implements com.example.paygate.payments.providers.PaymentProv
             }
 
             Transaction updatedTransaction =  transactionsService.updateTransaction(transaction);
-
             merchantWebhookTemplate.send("merchant.webhook", updatedTransaction);
-        }
 
+        } catch (Exception e) {
+            logger.error("Error while processing Mpesa callback", e);
+        }
     }
 
     @Override

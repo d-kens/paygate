@@ -6,9 +6,9 @@ import com.example.paygate.transactions.dtos.TransactionDto;
 import com.example.paygate.payments.dtos.PaymentRequest;
 
 public interface PaymentProvider<T> {
+    PaymentProviderType getProviderType();
     void callback(T providerResponse);
     String authenticate();
     TransactionDto initiatePayment(PaymentRequest paymentRequest, Merchant merchant);
     String checkPaymentStatus();
-    PaymentProviderType getProviderType();
 }
