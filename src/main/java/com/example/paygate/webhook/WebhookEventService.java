@@ -12,7 +12,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class WebhookEventService {
     private final WebhookEventRepository webhookEventRepository;
-    private final KafkaTemplate<String, String> kafkaTemplate;
+    private final KafkaTemplate<String, String> stringKafkaTemplate;
     private final ObjectMapper objectMapper;
 
 
@@ -38,7 +38,7 @@ public class WebhookEventService {
             
             event = webhookEventRepository.save(event);
 
-            kafkaTemplate.send("webhook.dispatch", eventId);
+            stringKafkaTemplate.send("webhook.dispatch", eventId);
             return event;
         } catch (Exception e) {
             throw new RuntimeException("Failed to persist or dispatch webhook event", e);
@@ -56,7 +56,7 @@ public class WebhookEventService {
         event.setLastError(null);
         webhookEventRepository.save(event);
 
-        kafkaTemplate.send("webhook.dispatch", eventId);
+        stringKafkaTemplate.send("webhook.dispatch", eventId);
 
         return event;
     }

@@ -17,10 +17,9 @@ public class MpesaEventConsumer {
     @KafkaListener(
             topics = "mpesa.callback",
             groupId = "mpesa-callback-group",
-            containerFactory = "mpesaCallBackKafkaListenerFactory"
+            containerFactory = "jsonKafkaListenerFactory"
     )
     public void handleCallBackEvent(MpesaResponse response) {
-        logger.info("Consumed Mpesa Callback: {}", response);
         mpesa.callback(response);
     }
 }

@@ -62,10 +62,6 @@ public class TransactionsService {
         return transactionRepository.findByMerchantId(merchantId).stream().map(transactionMapper::toDto).toList();
     }
 
-    public Transaction findTransactionByProviderReferenceId(String providerReferenceId) {
-        return transactionRepository.findByProviderReferenceId(providerReferenceId).orElse(null);
-    }
-
     public Transaction updateTransaction(Transaction transaction) {
         return transactionRepository.save(transaction);
     }

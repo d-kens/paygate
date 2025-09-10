@@ -1,6 +1,5 @@
 package com.example.paygate.kafka;
 
-import com.example.paygate.payments.providers.mpesa.dtos.MpesaResponse;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,23 +18,39 @@ public class KafkaProducerConfig {
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
 
-    public Map<String, Object> mpesaCallBackProducerConfig() {
+
+    private Map<String, Object> baseConfig() {
         Map<String, Object> props = new HashMap<>();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
         return props;
     }
 
+
+    // --- String Producer ---
     @Bean
-    public ProducerFactory<String, MpesaResponse> mpesaCallBackProducerFactory() {
-        return new DefaultKafkaProducerFactory<>(mpesaCallBackProducerConfig());
+    public ProducerFactory<String, String> stringProducerFactory() {
+        Map<String, Object> props = new HashMap<>(baseConfig());
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        return new DefaultKafkaProducerFactory<>(props);
     }
 
     @Bean
-    public KafkaTemplate<String, MpesaResponse> mpesaCallBackTemplate() {
-        return new KafkaTemplate<>(mpesaCallBackProducerFactory());
+    public KafkaTemplate<String, String> stringKafkaTemplate() {
+        return new KafkaTemplate<>(stringProducerFactory());
     }
 
+    // --- JSON Producer ---
+    @Bean
+    public ProducerFactory<String, Object> jsonProducerFactory() {
+        Map<String, Object> props = new HashMap<>(baseConfig());
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+        return new DefaultKafkaProducerFactory<>(props);
+    }
 
+    @Bean
+    public KafkaTemplate<String, Object> jsonKafkaTemplate() {
+        return new KafkaTemplate<>(jsonProducerFactory());
+    }
 }

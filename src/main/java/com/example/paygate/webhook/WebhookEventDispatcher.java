@@ -25,7 +25,8 @@ public class WebhookEventDispatcher {
 
     @KafkaListener(
             topics = "webhook.dispatch",
-            groupId = "webhook-dispatcher"
+            groupId = "webhook-dispatcher",
+            containerFactory = "stringKafkaListenerFactory"
     )
     public void handleDispatch(String eventId) {
         WebhookEvent event = webhookEventRepository.findByEventId(eventId).orElse(null);

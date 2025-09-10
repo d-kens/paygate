@@ -13,8 +13,8 @@ public class KafkaTopicConfig {
         return TopicBuilder.name("mpesa.callback").build();
     }
 
-//    @Bean
-//    public NewTopic merchantWebhook() {
-//        return TopicBuilder.name("webhook.dispatch").build();
-//    }
+    @Bean
+    public NewTopic merchantWebhook() {
+        return TopicBuilder.name("webhook.dispatch").build();
+    }
 }

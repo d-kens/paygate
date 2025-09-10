@@ -1,7 +1,5 @@
 package com.example.paygate.kafka;
 
-
-import com.example.paygate.payments.providers.mpesa.dtos.MpesaResponse;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,31 +18,49 @@ public class KafkaConsumerConfig {
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
 
-
-    public Map<String, Object> mpesaCallBackConsumerConfig() {
+    private Map<String, Object> baseConfig() {
         Map<String, Object> props = new HashMap<>();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
         return props;
     }
 
+
+    // --- String consumer ---
     @Bean
-    public ConsumerFactory<String, MpesaResponse> mpesaCallBackDataConsumerFactory() {
-        JsonDeserializer<MpesaResponse> deserializer = new JsonDeserializer<>(MpesaResponse.class);
+    public ConsumerFactory<String, String> stringConsumerFactory() {
+        return new DefaultKafkaConsumerFactory<>(
+                baseConfig(),
+                new StringDeserializer(),
+                new StringDeserializer()
+        );
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, String> stringKafkaListenerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, String> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(stringConsumerFactory());
+        return factory;
+    }
+
+    // --- JSON Consumer ---
+    @Bean
+    public <T> ConsumerFactory<String, T> jsonConsumerFactory(Class<T> targetType) {
+        JsonDeserializer<T> deserializer = new JsonDeserializer<>(targetType);
         deserializer.addTrustedPackages("*");
 
         return new DefaultKafkaConsumerFactory<>(
-                mpesaCallBackConsumerConfig(),
+                baseConfig(),
                 new StringDeserializer(),
                 deserializer
         );
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, MpesaResponse> mpesaCallBackKafkaListenerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, MpesaResponse> factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(mpesaCallBackDataConsumerFactory());
+    public ConcurrentKafkaListenerContainerFactory<String, Object> jsonKafkaListenerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, Object> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(jsonConsumerFactory(Object.class));
         return  factory;
     }
 }

@@ -24,7 +24,7 @@ public class PaymentsController {
     private static final Logger logger = LoggerFactory.getLogger(PaymentsController.class);
 
     private final PaymentsService paymentsService;
-    private final KafkaTemplate<String, MpesaResponse> mpesaCallBackTemplate;
+    private final KafkaTemplate<String, Object> jsonKafkaTemplate;
 
     @PostMapping("/initiate")
     public TransactionDto initiatePayment(
@@ -39,7 +39,7 @@ public class PaymentsController {
     public ResponseEntity<Void> processMpesaCallback(@RequestBody MpesaResponse data) {
         logger.info("Received STK Callback: " + data);
 
-        mpesaCallBackTemplate.send("mpesa.callback", data);
+        jsonKafkaTemplate.send("mpesa.callback", data);
 
         return ResponseEntity.ok().build();
     }

@@ -10,6 +10,7 @@ import com.example.paygate.payments.providers.PaymentProvider;
 import com.example.paygate.payments.providers.mpesa.dtos.*;
 import com.example.paygate.transactions.Transaction;
 import com.example.paygate.transactions.TransactionStatus;
+import com.example.paygate.transactions.TransactionsRepository;
 import com.example.paygate.transactions.TransactionsService;
 import com.example.paygate.transactions.dtos.CreateTransactionDto;
 import com.example.paygate.transactions.dtos.TransactionDto;
@@ -29,6 +30,7 @@ import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Date;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -38,6 +40,7 @@ public class Mpesa implements PaymentProvider<MpesaResponse> {
     private final CustomerService customerService;
     private final WebhookEventService webhookEventService;
     private final TransactionsService transactionsService;
+    private final TransactionsRepository transactionsRepository;
 
     private static final Logger logger = LoggerFactory.getLogger(Mpesa.class);
 
@@ -84,7 +87,6 @@ public class Mpesa implements PaymentProvider<MpesaResponse> {
             var stkRequest = buildMpesaStkRequest(paymentRequest);
             var stkResponse = initiateStkPayment(stkRequest);
             var customer = buildCustomerAccount(paymentRequest, merchant);
-
 
             var createTransactionDto = new CreateTransactionDto(
                     merchant.getId(),
@@ -180,13 +182,15 @@ public class Mpesa implements PaymentProvider<MpesaResponse> {
             }
 
             String providerReferenceId = mpesaResponse.getBody().getStkCallBack().getMerchantRequestID();
-            Transaction transaction = transactionsService.findTransactionByProviderReferenceId(providerReferenceId);
+            Optional<Transaction> result = transactionsRepository.findByProviderReferenceId(providerReferenceId);
 
 
-            if (transaction == null) {
+            if (!result.isPresent()) {
                 logger.error("No transaction found for the providerReferenceId={}", providerReferenceId);
                 return;
             }
+
+            var transaction = result.get();
 
             int resultCode = mpesaResponse.getBody().getStkCallBack().getResultCode();
 
@@ -200,8 +204,23 @@ public class Mpesa implements PaymentProvider<MpesaResponse> {
 
                     if (callBackMetaData != null && callBackMetaData.getItem() != null) {
                         for (MpesaResponse.Item item : callBackMetaData.getItem()) {
-                            if ("MpesaReceiptNumber".equals(item.getName()))
-                                transaction.setProviderTransactionId(item.getValue());
+                            if ("MpesaReceiptNumber".equals(item.getName())) {
+                                var existing = transactionsRepository.findByProviderTransactionId(item.getValue());
+
+                                if (existing.isPresent()) {
+                                    if (existing.get().getId().equals(transaction.getId())) {
+                                        logger.info("Callback already processed for transaction {} with receipt {}",
+                                                transaction.getId(), item.getValue());
+                                    } else {
+                                        throw new PaymentProviderException(
+                                                "Duplicate provider transaction ID " + item.getValue() +
+                                                        " found in transaction " + existing.get().getId()
+                                        );
+                                    }
+                                } else {
+                                    transaction.setProviderTransactionId(item.getValue());
+                                }
+                            }
 
                             if ("PhoneNumber".equals(item.getName()))
                                 transaction.setPaidBy(item.getValue());
@@ -233,8 +252,8 @@ public class Mpesa implements PaymentProvider<MpesaResponse> {
                     updatedTransaction.getMerchant().getWebhookUrl(),
                     webhookPayload
             );
-        } catch (Exception e) {
-            logger.error("Error while processing Mpesa callback", e);
+        } catch (PaymentProviderException e) {
+            logger.warn("Error while processing Mpesa callback: {}", e.getMessage());
         }
     }
 }

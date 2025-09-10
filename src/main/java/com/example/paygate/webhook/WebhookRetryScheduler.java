@@ -11,15 +11,14 @@ import java.time.OffsetDateTime;
 @AllArgsConstructor
 public class WebhookRetryScheduler {
     private final WebhookEventRepository webhookEventRepository;
-    private final KafkaTemplate<String, String> kafkaTemplate;
+    private final KafkaTemplate<String, String> stringKafkaTemplate;
 
-    // every minute
     @Scheduled(cron = "/1 * * * *")
     public void enqueueDueEvents() {
         var eventsDue = webhookEventRepository.findTop100ByStatusAndNextAttemptAtBeforeOrderByNextAttemptAtAsc("PENDING", OffsetDateTime.now());
 
         for (WebhookEvent event : eventsDue ) {
-            kafkaTemplate.send("webhook.dispatch", event.getEventId());
+            stringKafkaTemplate.send("webhook.dispatch", event.getEventId());
         }
     }
 }
