@@ -16,7 +16,7 @@ public class WebhookEventService {
     private final ObjectMapper objectMapper;
 
 
-    public WebhookEvent createAndDispatch(Long transactionId, Long merchantId, String webhookUrl, Object payload) {
+    public void createAndDispatch(Long transactionId, Long merchantId, String webhookUrl, Object payload) {
         try {
             String eventId = UUID.randomUUID().toString();
             String payloadJson = objectMapper.writeValueAsString(payload);
@@ -36,10 +36,9 @@ public class WebhookEventService {
                     .updatedAt(now)
                     .build();
             
-            event = webhookEventRepository.save(event);
+            webhookEventRepository.save(event);
 
             stringKafkaTemplate.send("webhook.dispatch", eventId);
-            return event;
         } catch (Exception e) {
             throw new RuntimeException("Failed to persist or dispatch webhook event", e);
         }
