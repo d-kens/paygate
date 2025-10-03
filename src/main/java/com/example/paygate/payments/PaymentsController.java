@@ -3,6 +3,7 @@ package com.example.paygate.payments;
 import com.example.paygate.exceptions.dtos.ErrorDto;
 import com.example.paygate.merchants.Merchant;
 
+import com.example.paygate.novu.NovuService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -17,12 +18,14 @@ import com.example.paygate.transactions.dtos.TransactionDto;
 import com.example.paygate.exceptions.PaymentProviderException;
 import com.example.paygate.payments.providers.mpesa.dtos.MpesaResponse;
 
+
 @RestController
 @AllArgsConstructor
 @RequestMapping("/payments")
 public class PaymentsController {
     private static final Logger logger = LoggerFactory.getLogger(PaymentsController.class);
 
+    private final NovuService novuService;
     private final PaymentsService paymentsService;
     private final KafkaTemplate<String, Object> jsonKafkaTemplate;
 

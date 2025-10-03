@@ -35,3 +35,5 @@ spring:
     maxAttempts: 6
     backoffSeconds: [ 60, 300, 1800, 7200, 28800, 86400 ] # 1m,5m,30m,2h,8h,24h
 
+  novu:
+    apiKey: ${NOVU_API_KEY}
